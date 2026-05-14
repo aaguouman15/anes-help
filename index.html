@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANEST·OR v3.1</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080d12; --surf:#0e1620; --surf2:#162030; --surf3:#1c2a3a;
+  --border:#1a2a3a; --border2:#223344;
+  --accent:#00c8ff; --accent2:#00ff9d; --accent3:#7b61ff;
+  --warn:#ffb800; --danger:#ff3d3d; --danger2:#ff6b6b;
+  --text:#ddeeff; --text2:#7a9ab8; --text3:#3d5a75;
+  --mono:'JetBrains Mono',monospace; --sans:'DM Sans',sans-serif;
+  --sidebar-w:230px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;display:flex;flex-direction:column}
+
+/* HEADER */
+header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:14px;z-index:100;flex-shrink:0}
+.logo{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);letter-spacing:.06em;white-space:nowrap}
+.logo em{color:var(--text3);font-style:normal;font-weight:300}
+.search-wrap{flex:1;position:relative;max-width:560px}
+.search-wrap input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:7px 36px 7px 12px;border-radius:4px;outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surf2);border:1px solid var(--border2);border-radius:4px;z-index:999;max-height:260px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.sd-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);transition:background .1s}
+.sd-item:last-child{border-bottom:none}
+.sd-item:hover,.sd-item.active{background:var(--surf3)}
+.sd-cat{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;min-width:70px}
+.sd-label{font-size:12.5px;color:var(--text)}
+.sd-kw{font-size:10px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+.search-icon{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.hdr-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:pulse 2s infinite}
+.hdr-txt{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.mode-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;background:rgba(255,184,0,.12);color:var(--warn);border:1px solid rgba(255,184,0,.25);cursor:pointer;transition:all .15s;white-space:nowrap}
+.mode-badge.ped{background:rgba(123,97,255,.12);color:var(--accent3);border-color:rgba(123,97,255,.25)}
+
+/* LAYOUT */
+.app{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surf);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;flex-shrink:0}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
+.sl{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:10px 14px 3px}
+.sb{width:100%;text-align:left;background:none;border:none;color:var(--text2);font-family:var(--sans);font-size:12.5px;padding:6px 14px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:background .1s,color .1s;border-left:2px solid transparent}
+.sb:hover{background:var(--surf2);color:var(--text)}
+.sb.active{background:var(--surf2);color:var(--accent);border-left-color:var(--accent)}
+.sb.d:hover,.sb.d.active{color:var(--danger);border-left-color:var(--danger)}
+.sb.w:hover,.sb.w.active{color:var(--warn);border-left-color:var(--warn)}
+.sb.p:hover,.sb.p.active{color:var(--accent3);border-left-color:var(--accent3)}
+.si{font-size:13px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* CHAT */
+.chat{width:340px;min-width:340px;background:var(--surf);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.chat-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.chat-hdr-title{font-family:var(--mono);font-size:11px;color:var(--text2);flex:1}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border2)}
+.msg{max-width:92%;font-size:12.5px;line-height:1.55}
+.msg.user{align-self:flex-end;background:var(--accent);color:#000;padding:7px 11px;border-radius:8px 8px 2px 8px;font-weight:500}
+.msg.assistant{align-self:flex-start;background:var(--surf2);color:var(--text);padding:9px 13px;border-radius:2px 8px 8px 8px;border:1px solid var(--border2)}
+.msg.assistant strong{color:var(--accent)}
+.msg-time{font-size:9px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+.typing{display:flex;gap:3px;align-items:center;padding:9px 13px;background:var(--surf2);border-radius:2px 8px 8px 8px;border:1px solid var(--border2);width:fit-content}
+.typing span{width:5px;height:5px;background:var(--text3);border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+.chat-inp-area{padding:10px;border-top:1px solid var(--border);display:flex;gap:7px;align-items:flex-end}
+.chat-inp{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:12.5px;padding:7px 11px;border-radius:4px;outline:none;resize:none;min-height:36px;max-height:90px;transition:border-color .15s}
+.chat-inp:focus{border-color:var(--accent)}
+.chat-inp::placeholder{color:var(--text3)}
+.send-btn{background:var(--accent);color:#000;border:none;border-radius:4px;width:34px;height:34px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0}
+.send-btn:hover{opacity:.85}
+.send-btn:disabled{opacity:.35;cursor:default}
+
+/* CONTENT */
+.sec-title{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.card{background:var(--surf);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.card-hdr{background:var(--surf2);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.card-hdr-title{font-weight:600;font-size:13.5px;flex:1}
+.card-body{padding:14px}
+
+/* TAGS */
+.tag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.07em;display:inline-block}
+.td{background:rgba(255,61,61,.12);color:var(--danger);border:1px solid rgba(255,61,61,.28)}
+.tw{background:rgba(255,184,0,.12);color:var(--warn);border:1px solid rgba(255,184,0,.25)}
+.ti{background:rgba(0,200,255,.08);color:var(--accent);border:1px solid rgba(0,200,255,.22)}
+.tok{background:rgba(0,255,157,.08);color:var(--accent2);border:1px solid rgba(0,255,157,.2)}
+.tp{background:rgba(123,97,255,.1);color:var(--accent3);border:1px solid rgba(123,97,255,.25)}
+
+/* QUICK GRID */
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:9px;margin-bottom:16px}
+.qc{background:var(--surf);border:1px solid var(--border);border-radius:4px;padding:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.qc:hover{background:var(--surf2)}
+.qc.em{border-left:3px solid var(--danger)}.qc.em:hover{border-color:var(--danger)}
+.qc.wa{border-left:3px solid var(--warn)}.qc.wa:hover{border-color:var(--warn)}
+.qc.in{border-left:3px solid var(--accent)}.qc.in:hover{border-color:var(--accent)}
+.qc.ca{border-left:3px solid var(--accent2)}.qc.ca:hover{border-color:var(--accent2)}
+.qc.pe{border-left:3px solid var(--accent3)}.qc.pe:hover{border-color:var(--accent3)}
+.qc-icon{font-size:18px;margin-bottom:6px}
+.qc-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+.qc-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+
+/* STEPS */
+.steps{list-style:none}
+.step{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.sn{font-family:var(--mono);font-size:11px;width:22px;height:22px;min-width:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.sn.b{color:var(--accent);background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.22)}
+.sn.d{color:var(--danger);background:rgba(255,61,61,.1);border:1px solid rgba(255,61,61,.25)}
+.sn.w{color:var(--warn);background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.22)}
+.sn.p{color:var(--accent3);background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.22)}
+.st{font-size:12.5px;line-height:1.55;padding-top:2px}
+.st strong{color:var(--accent)}
+.drug{color:var(--accent2);font-weight:600;font-family:var(--mono)}
+.dose{color:var(--warn);font-family:var(--mono);font-weight:600}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{font-family:var(--mono);font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;text-align:left;padding:5px 9px;border-bottom:1px solid var(--border2);font-weight:500}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surf2)}
+.dn{color:var(--accent2);font-weight:600;font-family:var(--mono)}
+.dd{color:var(--warn);font-family:var(--mono)}
+.dnote{color:var(--text2);font-size:11.5px}
+
+/* CALC */
+.cform{display:flex;flex-direction:column;gap:10px}
+.crow{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.cg{display:flex;flex-direction:column;gap:3px}
+.cl{font-size:10px;color:var(--text3);font-family:var(--mono);text-transform:uppercase}
+.ci{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:13px;font-weight:600;padding:7px 10px;border-radius:4px;outline:none;width:110px;transition:border-color .15s}
+.ci:focus{border-color:var(--accent)}
+.cs{background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:12px;padding:7px 10px;border-radius:4px;outline:none;cursor:pointer}
+.cbtn{background:var(--accent);color:#000;border:none;padding:7px 16px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;transition:opacity .15s}
+.cbtn:hover{opacity:.85}
+.cres{background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:12px;font-family:var(--mono)}
+.ri{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ri:last-child{border-bottom:none}
+.rl{color:var(--text2)}
+.rv{color:var(--accent);font-weight:700;font-size:13px}
+.rv.w{color:var(--warn)}
+.rv.ok{color:var(--accent2)}
+.rv.d{color:var(--danger)}
+
+/* ALERT */
+.alert{border-radius:4px;padding:10px 12px;margin-bottom:10px;display:flex;gap:8px;font-size:12.5px}
+.alert.d{background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.22)}
+.alert.w{background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.2)}
+.alert.i{background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18)}
+.alert.p{background:rgba(123,97,255,.06);border:1px solid rgba(123,97,255,.2)}
+.alert-icon{font-size:14px}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto}
+.tab{font-family:var(--mono);font-size:10px;color:var(--text3);padding:7px 13px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.active.p{color:var(--accent3);border-bottom-color:var(--accent3)}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+/* CHECKLIST */
+.cklist{list-style:none}
+.ck-item{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.ck-item:last-child{border-bottom:none}
+.ck-box{width:17px;height:17px;min-width:17px;border:1.5px solid var(--border2);border-radius:3px;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s}
+.ck-item.checked .ck-box{background:var(--accent2);border-color:var(--accent2);color:#000;font-size:10px;font-weight:700}
+.ck-item.checked .ck-text{color:var(--text3);text-decoration:line-through}
+.ck-text{font-size:12.5px;line-height:1.4}
+
+.hidden{display:none!important}
+.fade{animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.mono{font-family:var(--mono)}
+.small{font-size:11.5px;color:var(--text2)}
+.badge{font-family:var(--mono);font-size:9px;padding:1px 5px;border-radius:2px;display:inline-block}
+.bd{background:rgba(255,61,61,.18);color:var(--danger)}
+.bw{background:rgba(255,184,0,.18);color:var(--warn)}
+.bok{background:rgba(0,255,157,.12);color:var(--accent2)}
+.bp{background:rgba(123,97,255,.15);color:var(--accent3)}
+
+@media(max-width:900px){.chat{display:none}}
+@media(max-width:640px){.sidebar{width:180px;min-width:180px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ANEST<span style="color:var(--text3)">·</span>OR <em>v3.1</em></div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="hipotensión · anafilaxia · propofol 70kg · tubo ET 5 años · TCI Marsh ..." autocomplete="off" oninput="liveSearch(this.value)" onkeydown="searchKey(event)">
+    <span class="search-icon">⌕</span>
+    <div id="searchDrop" class="search-drop" style="display:none"></div>
+  </div>
+  <div class="hdr-right">
+    <button class="mode-badge" id="modeBtn" onclick="toggleMode()">ADULTO</button>
+    <div class="pulse-dot"></div>
+    <span class="hdr-txt">IA ACTIVA</span>
+  </div>
+</header>
+
+<div class="app">
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sl">Emergencias</div>
+  <button class="sb d active" onclick="show('home')" id="btn-home"><span class="si">⚡</span>Inicio Rápido</button>
+  <button class="sb d" onclick="show('crisis')" id="btn-crisis"><span class="si">🆘</span>Crisis por Síntoma</button>
+  <button class="sb d" onclick="show('pcr')" id="btn-pcr"><span class="si">❤️</span>PCR Intraop.</button>
+  <button class="sb d" onclick="show('anafilaxia')" id="btn-anafilaxia"><span class="si">⚠️</span>Anafilaxia</button>
+  <button class="sb d" onclick="show('hm')" id="btn-hm"><span class="si">🌡️</span>Hiperm. Maligna</button>
+  <button class="sb d" onclick="show('last')" id="btn-last"><span class="si">💉</span>LAST</button>
+
+  <div class="sl">Vía Aérea</div>
+  <button class="sb w" onclick="show('vad')" id="btn-vad"><span class="si">🔴</span>VAD Algoritmo</button>
+  <button class="sb w" onclick="show('rsi')" id="btn-rsi"><span class="si">⚡</span>ISR</button>
+  <button class="sb w" onclick="show('extubacion')" id="btn-extubacion"><span class="si">🔓</span>Extubación</button>
+
+  <div class="sl">Calculadoras</div>
+  <button class="sb" onclick="show('calc-dosis')" id="btn-calc-dosis"><span class="si">💊</span>Dosis Fármacos</button>
+  <button class="sb" onclick="show('calc-vasopresores')" id="btn-calc-vasopresores"><span class="si">🩸</span>Vasopresores</button>
+  <button class="sb" onclick="show('calc-fluidos')" id="btn-calc-fluidos"><span class="si">💧</span>Fluidos/Transfusión</button>
+  <button class="sb" onclick="show('calc-medio')" id="btn-calc-medio"><span class="si">⚗️</span>Medio Interno</button>
+  <button class="sb" onclick="show('calc-tiva')" id="btn-calc-tiva"><span class="si">📈</span>TIVA/TCI Avanzado</button>
+  <button class="sb" onclick="show('calc-vent')" id="btn-calc-vent"><span class="si">🫁</span>Ventilación</button>
+
+  <div class="sl">Monitoreo</div>
+  <button class="sb" onclick="show('pocus')" id="btn-pocus"><span class="si">🔬</span>POCUS / Echo</button>
+  <button class="sb" onclick="show('hemodin')" id="btn-hemodin"><span class="si">📊</span>Monit. Hemodinámico</button>
+
+  <div class="sl">Pediatría</div>
+  <button class="sb p" onclick="show('ped-intro')" id="btn-ped-intro"><span class="si">👶</span>Referencia Rápida</button>
+  <button class="sb p" onclick="show('ped-dosis')" id="btn-ped-dosis"><span class="si">💊</span>Dosis Pediátricas</button>
+  <button class="sb p" onclick="show('ped-via')" id="btn-ped-via"><span class="si">🔴</span>Vía Aérea Pediát.</button>
+  <button class="sb p" onclick="show('ped-rcp')" id="btn-ped-rcp"><span class="si">❤️</span>RCP Pediátrico</button>
+  <button class="sb p" onclick="show('ped-vent')" id="btn-ped-vent"><span class="si">🫁</span>Ventilación Pediát.</button>
+
+  <div class="sl">Protocolos</div>
+  <button class="sb" onclick="show('sedacion')" id="btn-sedacion"><span class="si">😴</span>Sedación/Analgesia</button>
+  <button class="sb" onclick="show('checklist')" id="btn-checklist"><span class="si">✅</span>Check Inducción</button>
+  <button class="sb" onclick="show('posicion')" id="btn-posicion"><span class="si">🛌</span>Posicionamiento</button>
+  <button class="sb" onclick="show('neuroaxial')" id="btn-neuroaxial"><span class="si">🔷</span>Neuroaxial</button>
+  <button class="sb" onclick="show('farmaco-av')" id="btn-farmaco-av"><span class="si">🧬</span>Farmacología Avanz.</button>
+  <button class="sb" onclick="show('perfiles-ea')" id="btn-perfiles-ea"><span class="si">⚗️</span>Perfiles Efec. Adv.</button>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="mainContent">
+
+<!-- HOME -->
+<div id="section-home" class="fade">
+  <div class="sec-title">Acceso Rápido — Adulto & Pediátrico</div>
+  <div class="qgrid">
+    <div class="qc em" onclick="show('pcr')"><div class="qc-icon">❤️</div><div class="qc-title">PCR Intraop.</div><div class="qc-sub">RCP · Ritmos · 5H/5T</div></div>
+    <div class="qc em" onclick="show('anafilaxia')"><div class="qc-icon">⚠️</div><div class="qc-title">Anafilaxia</div><div class="qc-sub">Adrenalina · AAGBI 2022</div></div>
+    <div class="qc em" onclick="show('hm')"><div class="qc-icon">🌡️</div><div class="qc-title">Hiperm. Maligna</div><div class="qc-sub">Dantroleno · MHAUS</div></div>
+    <div class="qc em" onclick="show('last')"><div class="qc-icon">💉</div><div class="qc-title">LAST</div><div class="qc-sub">Intralípidos · ASRA 2023</div></div>
+    <div class="qc wa" onclick="show('vad')"><div class="qc-icon">🔴</div><div class="qc-title">VAD</div><div class="qc-sub">DAS 2022 · CICO</div></div>
+    <div class="qc wa" onclick="show('rsi')"><div class="qc-icon">⚡</div><div class="qc-title">ISR</div><div class="qc-sub">Secuencia rápida</div></div>
+    <div class="qc ca" onclick="show('calc-dosis')"><div class="qc-icon">💊</div><div class="qc-title">Dosis Fármacos</div><div class="qc-sub">Por peso · 20+ drogas</div></div>
+    <div class="qc ca" onclick="show('calc-vasopresores')"><div class="qc-icon">🩸</div><div class="qc-title">Vasopresores</div><div class="qc-sub">Noradrenalina · mL/h</div></div>
+    <div class="qc ca" onclick="show('calc-tiva')"><div class="qc-icon">📈</div><div class="qc-title">TIVA / TCI</div><div class="qc-sub">Marsh · Schnider · Minto</div></div>
+    <div class="qc in" onclick="show('pocus')"><div class="qc-icon">🔬</div><div class="qc-title">POCUS / Echo</div><div class="qc-sub">FATE · RUSH · Venas</div></div>
+    <div class="qc in" onclick="show('hemodin')"><div class="qc-icon">📊</div><div class="qc-title">Monit. Hemodinámico</div><div class="qc-sub">PAC · PiCCO · VVS</div></div>
+    <div class="qc pe" onclick="show('ped-intro')"><div class="qc-icon">👶</div><div class="qc-title">Pediatría</div><div class="qc-sub">Dosis · VA · RCP · Vent</div></div>
+    <div class="qc ca" onclick="show('calc-fluidos')"><div class="qc-icon">💧</div><div class="qc-title">Fluidos/Hemoderivados</div><div class="qc-sub">VSC · Transfusión</div></div>
+    <div class="qc ca" onclick="show('calc-medio')"><div class="qc-icon">⚗️</div><div class="qc-title">Medio Interno</div><div class="qc-sub">HCO₃ · Na · K · Ca</div></div>
+    <div class="qc in" onclick="show('checklist')"><div class="qc-icon">✅</div><div class="qc-title">Check Inducción</div><div class="qc-sub">WHO · WFSA</div></div>
+    <div class="qc in" onclick="show('farmaco-av')"><div class="qc-icon">🧬</div><div class="qc-title">Farmacología Avanz.</div><div class="qc-sub">FK/FD · Interacciones</div></div>
+  </div>
+  <div class="alert i"><span class="alert-icon">🤖</span><div>Panel derecho → <strong>Consulta IA</strong> en lenguaje natural: <em style="color:var(--text2)">"Paciente 70kg hipotensión post-inducción"</em> · <em style="color:var(--text2)">"Dosis sugammadex bloqueo profundo"</em> · <em style="color:var(--text2)">"Niño 18kg, ISR"</em></div></div>
+</div>
+
+<!-- PCR -->
+<div id="section-pcr" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag td">EMERGENCIA</span><span class="card-hdr-title">PCR Intraoperatoria</span><span class="tag ti">AHA 2020 / ERC 2021</span></div>
+    <div class="card-body">
+      <div class="alert d"><span class="alert-icon">🚨</span><strong>PEDIR AYUDA. INICIAR RCP. ACTIVAR CÓDIGO. FiO₂ 1.0. Suspender halogenado.</strong></div>
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'pcr-rcp')">RCP</div>
+        <div class="tab" onclick="tab(this,'pcr-farmacos')">Fármacos</div>
+        <div class="tab" onclick="tab(this,'pcr-ritmos')">Ritmos</div>
+        <div class="tab" onclick="tab(this,'pcr-5h5t')">5H / 5T</div>
+      </div>
+      <div id="pcr-rcp">
+        <ul class="steps">
+          <li class="step"><div class="sn d">1</div><div class="st"><strong>Compresiones:</strong> <span class="dose">100–120/min · 5–6 cm</span> · relación 30:2 · no interrumpir &gt;10 s</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st"><strong>Vía aérea:</strong> FiO₂ 1.0 · suspender halogenado · capnografía (ETCO₂ &gt;10 = RCP eficaz)</div></li>
+          <li class="step"><div class="sn d">3</div><div class="st"><strong>FV/TV:</strong> Desfibrilar <span class="dose">200J bifásico</span> → RCP 2 min → evaluar → <span class="drug">Adrenalina</span> <span class="dose">1 mg</span> tras 3er choque, luego c/3–5 min</div></li>
+          <li class="step"><div class="sn d">4</div><div class="st"><strong>AESP/Asistolia:</strong> <span class="drug">Adrenalina</span> <span class="dose">1 mg IV c/3–5 min</span> → buscar causas reversibles</div></li>
+          <li class="step"><div class="sn d">5</div><div class="st"><strong>ROSC:</strong> SpO₂ 94–98% · ETCO₂ 35–45 · glucemia 140–180 · UCI</div></li>
+        </ul>
+      </div>
+      <div id="pcr-farmacos" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis</th><th>Indicación</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Adrenalina</td><td class="dd">1 mg IV c/3–5 min</td><td>FV/TV/AESP/Asist.</td><td class="dnote">1 amp 1mg/1mL → diluir 10mL SF</td></tr>
+          <tr><td class="dn">Amiodarona</td><td class="dd">300 mg bolo → 150 mg</td><td>FV/TV refractaria</td><td class="dnote">Tras 3er choque · diluir G5%</td></tr>
+          <tr><td class="dn">Lidocaína</td><td class="dd">100 mg IV</td><td>FV/TV (alt. amio)</td><td class="dnote">Si amiodarona no disponible</td></tr>
+          <tr><td class="dn">Bicarbonato</td><td class="dd">1 mEq/kg IV</td><td>Acidosis / Hiperpot.</td><td class="dnote">pH &lt;7.1 o K⁺ &gt;6.5</td></tr>
+          <tr><td class="dn">Calcio gluconato</td><td class="dd">1 g IV (10mL 10%)</td><td>Hiperpotasemia</td><td class="dnote">Lento, CVC si posible</td></tr>
+        </tbody></table>
+      </div>
+      <div id="pcr-ritmos" class="hidden">
+        <div class="g2">
+          <div style="background:var(--bg);border:1px solid rgba(255,61,61,.3);border-radius:4px;padding:12px">
+            <div style="color:var(--danger);font-weight:600;margin-bottom:8px;font-family:var(--mono);font-size:11px">DESFIBRILABLE</div>
+            <div class="small" style="margin-bottom:3px">● Fibrilación Ventricular (FV)</div>
+            <div class="small" style="margin-bottom:8px">● TV sin pulso</div>
+            <div style="color:var(--warn);font-size:11.5px">→ 200J bifásico<br>→ RCP 2 min → reevaluar<br>→ Adrenalina tras 3er choque</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid rgba(255,184,0,.3);border-radius:4px;padding:12px">
+            <div style="color:var(--warn);font-weight:600;margin-bottom:8px;font-family:var(--mono);font-size:11px">NO DESFIBRILABLE</div>
+            <div class="small" style="margin-bottom:3px">● AESP</div>
+            <div class="small" style="margin-bottom:8px">● Asistolia</div>
+            <div style="color:var(--accent);font-size:11.5px">→ RCP continuo<br>→ Adrenalina 1mg c/3–5min<br>→ Causa reversible</div>
+          </div>
+        </div>
+      </div>
+      <div id="pcr-5h5t" class="hidden">
+        <div class="g2">
+          <div><div style="color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:8px">5H</div>
+            <ul class="steps">
+              <li class="step"><div class="sn b">H</div><div class="st"><strong>Hipoxia</strong> — FiO₂ 1.0, revisar VA</div></li>
+              <li class="step"><div class="sn b">H</div><div class="st"><strong>Hipovolemia</strong> — carga volumen rápida</div></li>
+              <li class="step"><div class="sn b">H</div><div class="st"><strong>Hipo/Hiperpotasemia</strong> — GSA urgente</div></li>
+              <li class="step"><div class="sn b">H</div><div class="st"><strong>Hipotermia</strong> — recalentar</div></li>
+              <li class="step"><div class="sn b">H</div><div class="st"><strong>H⁺ Acidosis</strong> — Bicarbonato 1 mEq/kg</div></li>
+            </ul>
+          </div>
+          <div><div style="color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:8px">5T</div>
+            <ul class="steps">
+              <li class="step"><div class="sn b">T</div><div class="st"><strong>Taponamiento</strong> — pericardiocentesis</div></li>
+              <li class="step"><div class="sn b">T</div><div class="st"><strong>Neumotórax tensión</strong> — descompresión aguja</div></li>
+              <li class="step"><div class="sn b">T</div><div class="st"><strong>Trombosis coronaria</strong> — IAM</div></li>
+              <li class="step"><div class="sn b">T</div><div class="st"><strong>TEP</strong> — lisis urgente</div></li>
+              <li class="step"><div class="sn b">T</div><div class="st"><strong>Tóxicos</strong> — LAST, sobredosis</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANAFILAXIA -->
+<div id="section-anafilaxia" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag td">EMERGENCIA</span><span class="card-hdr-title">Anafilaxia Intraoperatoria</span><span class="tag ti">AAGBI 2022</span></div>
+    <div class="card-body">
+      <div class="alert d"><span class="alert-icon">🚨</span><strong>Frecuente sin síntomas cutáneos. Grados I→IV. Adrenalina es el fármaco de 1ª línea.</strong></div>
+      <div class="tabs"><div class="tab active" onclick="tab(this,'anaf-alg')">Algoritmo</div><div class="tab" onclick="tab(this,'anaf-farm')">Fármacos</div><div class="tab" onclick="tab(this,'anaf-ag')">Agentes</div></div>
+      <div id="anaf-alg">
+        <ul class="steps">
+          <li class="step"><div class="sn d">1</div><div class="st"><strong>PARAR</strong> agente desencadenante (ABX, AINE, látex, contraste)</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st"><strong>LLAMAR ayuda.</strong> Notificar cirujano</div></li>
+          <li class="step"><div class="sn d">3</div><div class="st">FiO₂ 1.0 · Si broncoespasmo severo → intubación precoz</div></li>
+          <li class="step"><div class="sn d">4</div><div class="st"><span class="drug">Adrenalina IV:</span> <span class="dose">10–50 mcg</span> (grado II–III) · Si PCR → <span class="dose">1 mg IV</span> · Repetir c/1–2 min</div></li>
+          <li class="step"><div class="sn d">5</div><div class="st"><strong>Volumen:</strong> Cristaloide <span class="dose">20 mL/kg rápido</span></div></li>
+          <li class="step"><div class="sn w">6</div><div class="st"><span class="drug">Salbutamol</span> <span class="dose">2.5–5 mg neb</span> — broncoespasmo refractario</div></li>
+          <li class="step"><div class="sn w">7</div><div class="st"><span class="drug">Hidrocortisona</span> <span class="dose">200 mg IV</span> (previene respuesta bifásica)</div></li>
+          <li class="step"><div class="sn b">8</div><div class="st"><strong>Post-crisis:</strong> Triptasa sérica 15 min / 1–2 h / 24 h · UCI · vigilar 72 h</div></li>
+        </ul>
+      </div>
+      <div id="anaf-farm" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Adrenalina bolo</td><td class="dd">10–50 mcg IV</td><td class="dnote">1mg/10mL SF = 100 mcg/mL → bolos 0.1–0.5 mL</td></tr>
+          <tr><td class="dn">Adrenalina infusión</td><td class="dd">0.05–1 mcg/kg/min</td><td class="dnote">Hipotensión persistente refractaria</td></tr>
+          <tr><td class="dn">Hidrocortisona</td><td class="dd">200 mg IV → 200 mg c/6h</td><td class="dnote">Efecto tardío 4–6h</td></tr>
+          <tr><td class="dn">Clorfeniramina</td><td class="dd">10 mg IV lento</td><td class="dnote">Auxiliar H1</td></tr>
+          <tr><td class="dn">Noradrenalina</td><td class="dd">0.1–0.5 mcg/kg/min</td><td class="dnote">Vasoplejia refractaria a adrenalina</td></tr>
+          <tr><td class="dn">Glucagón</td><td class="dd">1–2 mg IV bolo</td><td class="dnote">Pacientes betabloqueados</td></tr>
+        </tbody></table>
+      </div>
+      <div id="anaf-ag" class="hidden">
+        <div class="g2">
+          <div><div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:6px">AGENTES FRECUENTES</div>
+            <div class="small" style="margin-bottom:3px">🔴 Bloqueantes NM (60%)</div>
+            <div class="small" style="margin-bottom:3px">🔴 Antibióticos (penicilinas/cefas)</div>
+            <div class="small" style="margin-bottom:3px">🟡 Látex · Coloides · Protamina</div>
+            <div class="small" style="margin-bottom:3px">🟠 Contraste · Morfina · Sugammadex</div>
+          </div>
+          <div><div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:6px">DIAGNÓSTICO</div>
+            <div class="small" style="margin-bottom:3px">• Triptasa &gt;11.4 µg/L confirma</div>
+            <div class="small" style="margin-bottom:3px">• DD: vasovagal, HM, neumotórax</div>
+            <div class="small" style="margin-bottom:3px">• DD: TEP, LAST, angioedema</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HM -->
+<div id="section-hm" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag td">EMERGENCIA</span><span class="card-hdr-title">Hipertermia Maligna</span><span class="tag ti">MHAUS / EMHG 2020</span></div>
+    <div class="card-body">
+      <div class="alert d"><span class="alert-icon">🚨</span><strong>SUSPENDER halogenado y succinilcolina. Carbón activado en circuito. Dantroleno INMEDIATO.</strong></div>
+      <ul class="steps">
+        <li class="step"><div class="sn d">1</div><div class="st"><strong>SUSPENDER</strong> halogenados/SCC · Hiperventilación FiO₂ 1.0</div></li>
+        <li class="step"><div class="sn d">2</div><div class="st"><span class="drug">Dantroleno</span> <span class="dose">2.5 mg/kg IV rápido</span> → repetir c/5 min hasta <span class="dose">10 mg/kg</span> (máx 30 mg/kg)</div></li>
+        <li class="step"><div class="sn d">3</div><div class="st"><strong>Enfriamiento:</strong> SF frío IV · hielo axilas/ingle/cuello · Target &lt;38.5°C · Parar a 38°C</div></li>
+        <li class="step"><div class="sn w">4</div><div class="st"><span class="drug">Bicarbonato</span> <span class="dose">1–2 mEq/kg</span> si pH &lt;7.2</div></li>
+        <li class="step"><div class="sn w">5</div><div class="st"><strong>Hiperpotasemia:</strong> Calcio gluconato 30 mg/kg → insulina/glucosa → bicarbonato</div></li>
+        <li class="step"><div class="sn w">6</div><div class="st"><span class="drug">Amiodarona</span> <span class="dose">5 mg/kg</span> arritmias · <strong style="color:var(--danger)">EVITAR bloqueantes Ca²⁺</strong></div></li>
+        <li class="step"><div class="sn b">7</div><div class="st"><strong>Mantenimiento:</strong> <span class="dose">Dantroleno 1 mg/kg c/6h × 24–48h</span></div></li>
+      </ul>
+      <div class="alert w" style="margin-top:10px"><span class="alert-icon">📦</span><div><strong>Dantrium®:</strong> 20 mg/vial (60 mL agua estéril). Para 70 kg → 175 mg = ~9 viales. Tener ≥36 viales. 1er signo: ↑ ETCO₂ inexplicable.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LAST -->
+<div id="section-last" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag td">EMERGENCIA</span><span class="card-hdr-title">Toxicidad Sistémica por AL (LAST)</span><span class="tag ti">ASRA 2023</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'last-alg')">Algoritmo</div><div class="tab" onclick="tab(this,'last-lip')">Intralípidos (calc.)</div><div class="tab" onclick="tab(this,'last-dmax')">Dosis Máximas AL</div></div>
+      <div id="last-alg">
+        <ul class="steps">
+          <li class="step"><div class="sn d">1</div><div class="st"><strong>Reconocer:</strong> Neurológico (confusión/convulsiones) y/o cardiovascular (bradicardia/TV/FV) tras AL</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st"><strong>Detener AL · Pedir ayuda · FiO₂ 100% · IOT si convulsiones</strong></div></li>
+          <li class="step"><div class="sn d">3</div><div class="st"><span class="drug">Midazolam</span> <span class="dose">0.05–0.1 mg/kg</span> convulsiones (propofol: pequeñas dosis &lt;1 mg/kg)</div></li>
+          <li class="step"><div class="sn d">4</div><div class="st"><span class="drug">Intralípidos 20%:</span> Bolo <span class="dose">1.5 mL/kg en 1 min</span> → infusión <span class="dose">0.25 mL/kg/min</span></div></li>
+          <li class="step"><div class="sn w">5</div><div class="st">Si PCR: RCP prolongado · Adrenalina &lt;1 mcg/kg · Evitar vasopresina/bloq.Ca/betabloq.</div></li>
+          <li class="step"><div class="sn b">6</div><div class="st"><strong>ECMO</strong> si PCR refractaria. Dosis máx IL-20%: 10–12 mL/kg</div></li>
+        </ul>
+      </div>
+      <div id="last-lip" class="hidden">
+        <div class="cform">
+          <div class="crow"><div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="last-peso" type="number" value="70" style="width:90px"></div></div>
+          <button class="cbtn" onclick="calcLAST()">Calcular IL-20%</button>
+          <div class="cres" id="last-res" style="display:none"></div>
+        </div>
+      </div>
+      <div id="last-dmax" class="hidden">
+        <table class="tbl"><thead><tr><th>AL</th><th>Sin vasoconst.</th><th>Con Adrenalina</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Bupivacaína</td><td class="dd">2 mg/kg</td><td class="dd">2.5 mg/kg</td><td class="dnote">Mayor cardiotoxicidad. Nunca IV directa.</td></tr>
+          <tr><td class="dn">Levobupivacaína</td><td class="dd">2.5 mg/kg</td><td class="dd">3 mg/kg</td><td class="dnote">Menor cardiotoxicidad</td></tr>
+          <tr><td class="dn">Ropivacaína</td><td class="dd">3 mg/kg</td><td class="dd">4 mg/kg</td><td class="dnote">Max 200–250 mg absoluto</td></tr>
+          <tr><td class="dn">Lidocaína</td><td class="dd">4.5 mg/kg</td><td class="dd">7 mg/kg</td><td class="dnote">Menos cardiotóxica</td></tr>
+          <tr><td class="dn">Prilocaína</td><td class="dd">6 mg/kg</td><td class="dd">8 mg/kg</td><td class="dnote">Metahemoglobinemia</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VAD -->
+<div id="section-vad" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tw">VÍA AÉREA</span><span class="card-hdr-title">Vía Aérea Difícil</span><span class="tag ti">DAS 2022 / ASA 2022</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'vad-p')">VAD Prevista</div><div class="tab" onclick="tab(this,'vad-np')">VAD No Prevista</div><div class="tab" onclick="tab(this,'vad-cico')">CICO</div><div class="tab" onclick="tab(this,'vad-ev')">Evaluación</div></div>
+      <div id="vad-p">
+        <ul class="steps">
+          <li class="step"><div class="sn w">1</div><div class="st"><strong>Preparación:</strong> Pre-ox ≥3 min · Equipo alternativo disponible · Cirujano avisado</div></li>
+          <li class="step"><div class="sn w">2</div><div class="st"><strong>Intubación vigil</strong> (fibroscopio/VL) si VAD severa — conservar respiración espontánea</div></li>
+          <li class="step"><div class="sn w">3</div><div class="st"><strong>Inducción inhalatoria</strong> (sevoflurano) si obstrucción parcial</div></li>
+          <li class="step"><div class="sn w">4</div><div class="st"><strong>Dispositivos rescue preparados:</strong> VL · DMG-I · Kit cricotirotomía</div></li>
+        </ul>
+      </div>
+      <div id="vad-np" class="hidden">
+        <div class="alert w"><span class="alert-icon">⚠️</span><strong>Máximo 3+1 intentos totales. Mantener oxigenación en todo momento.</strong></div>
+        <ul class="steps">
+          <li class="step"><div class="sn w">A</div><div class="st"><strong>Plan A:</strong> Laringoscopio directo optimizado (BURP + bougie). Falla → Plan B</div></li>
+          <li class="step"><div class="sn w">B</div><div class="st"><strong>Plan B:</strong> Videolaringoscopio. 2 intentos máx → Plan C. Oxigenar entre intentos.</div></li>
+          <li class="step"><div class="sn w">C</div><div class="st"><strong>Plan C:</strong> DSG (LMA ProSeal/Supreme/i-gel) · Ventilación mascarilla · <strong>DESPERTAR</strong> si no urgente</div></li>
+          <li class="step"><div class="sn d">D</div><div class="st"><strong>Plan D (CICO):</strong> Cricotirotomía de emergencia. NO DEMORAR.</div></li>
+        </ul>
+      </div>
+      <div id="vad-cico" class="hidden">
+        <div class="alert d"><span class="alert-icon">🚨</span><strong>CICO — Can't Intubate Can't Oxygenate. DECLARAR EN VOZ ALTA. LLAMAR CIRUGÍA.</strong></div>
+        <ul class="steps">
+          <li class="step"><div class="sn d">1</div><div class="st"><strong>Declarar CICO</strong> en voz alta</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st"><strong>Último intento LMA 5</strong>. Si SpO₂ cae rápido → no perder tiempo</div></li>
+          <li class="step"><div class="sn d">3</div><div class="st"><strong>CRICOTIROTOMÍA QUIRÚRGICA:</strong> Incisión vertical piel → horizontal membrana cricotiroidea → tubo 6.0 cuffado. <strong>Estándar DAS 2022.</strong></div></li>
+        </ul>
+      </div>
+      <div id="vad-ev" class="hidden">
+        <table class="tbl"><thead><tr><th>Test</th><th>Criterio VAD</th><th>Sens</th><th>Esp</th></tr></thead><tbody>
+          <tr><td>Mallampati</td><td>III–IV</td><td>35%</td><td>90%</td></tr>
+          <tr><td>Apertura oral</td><td>&lt;3 cm (2 dedos)</td><td>—</td><td>—</td></tr>
+          <tr><td>Distancia TM</td><td>&lt;6 cm</td><td>—</td><td>—</td></tr>
+          <tr><td>ULBT</td><td>Clase III</td><td>50%</td><td>85%</td></tr>
+          <tr><td>El-Ganzouri</td><td>≥4 pts</td><td>70%</td><td>89%</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ISR -->
+<div id="section-rsi" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tw">VÍA AÉREA</span><span class="card-hdr-title">Intubación de Secuencia Rápida (ISR)</span></div>
+    <div class="card-body">
+      <div class="cform" style="margin-bottom:14px">
+        <div class="crow"><div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="rsi-peso" type="number" value="70" style="width:90px"></div></div>
+        <button class="cbtn" onclick="calcRSI()">Calcular dosis ISR</button>
+        <div class="cres" id="rsi-res" style="display:none"></div>
+      </div>
+      <div class="tabs"><div class="tab active" onclick="tab(this,'rsi-seq')">Secuencia</div><div class="tab" onclick="tab(this,'rsi-farm')">Opciones FK</div></div>
+      <div id="rsi-seq">
+        <ul class="steps">
+          <li class="step"><div class="sn w">1</div><div class="st"><strong>Pre-ox:</strong> FiO₂ 1.0 ≥3 min · 15 L/min mascarilla reservorio · cabeza 20–30° (apneic oxygenation)</div></li>
+          <li class="step"><div class="sn w">2</div><div class="st"><strong>Sellick (opcional):</strong> 10N despierto → 30N inconsciente. Liberar si interfiere con visión.</div></li>
+          <li class="step"><div class="sn w">3</div><div class="st"><strong>Inducción simultánea:</strong> Hipnótico + relajante sin demora. Sin ventilación manual salvo SpO₂ &lt;92%</div></li>
+          <li class="step"><div class="sn w">4</div><div class="st"><strong>Intubación:</strong> SCC 45–60 s · Rocuronio 1.2 mg/kg 60 s · Confirmar ETCO₂ continuo</div></li>
+        </ul>
+      </div>
+      <div id="rsi-farm" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis ISR</th><th>Inicio</th><th>Notas</th></tr></thead><tbody>
+          <tr><td colspan="4" style="color:var(--text3);font-size:10px;font-family:var(--mono);padding:5px 9px">— HIPNÓTICOS —</td></tr>
+          <tr><td class="dn">Propofol</td><td class="dd">1.5–2.5 mg/kg</td><td>30 s</td><td class="dnote">↓ dosis ancianos/hipovolemia/ASA III-IV</td></tr>
+          <tr><td class="dn">Ketamina</td><td class="dd">1.5–2 mg/kg</td><td>30–60 s</td><td class="dnote">Mantiene simpático. Ideal trauma/broncoespasmo</td></tr>
+          <tr><td class="dn">Etomidato</td><td class="dd">0.3 mg/kg</td><td>30 s</td><td class="dnote">Estabilidad HD. Supresión adrenal.</td></tr>
+          <tr><td colspan="4" style="color:var(--text3);font-size:10px;font-family:var(--mono);padding:5px 9px">— RELAJANTES —</td></tr>
+          <tr><td class="dn">Succinilcolina</td><td class="dd">1–1.5 mg/kg</td><td>45–60 s</td><td class="dnote">CI: hiperpotasemia, miopatías, quemados crónicos</td></tr>
+          <tr><td class="dn">Rocuronio ISR</td><td class="dd">1.2 mg/kg</td><td>60 s</td><td class="dnote">Reversible: Sugammadex 16 mg/kg</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXTUBACION -->
+<div id="section-extubacion" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tw">VÍA AÉREA</span><span class="card-hdr-title">Extubación — DAS 2012</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'ext-low')">Bajo Riesgo</div><div class="tab" onclick="tab(this,'ext-high')">Alto Riesgo</div></div>
+      <div id="ext-low">
+        <ul class="steps">
+          <li class="step"><div class="sn b">✓</div><div class="st"><strong>Criterios:</strong> Normotérmico · TOF &gt;0.9 · VT &gt;5 mL/kg · FR &lt;25 · SpO₂ &gt;96% FiO₂ &lt;40% · Despierto cooperador</div></li>
+          <li class="step"><div class="sn b">1</div><div class="st">Pre-ox FiO₂ 1.0 ×3 min · Succionar orofaringe</div></li>
+          <li class="step"><div class="sn b">2</div><div class="st">Posición 30° (lateral si riesgo aspiración)</div></li>
+          <li class="step"><div class="sn b">3</div><div class="st">Desinflar cuff al final-espiración → retirar → mascarilla O₂</div></li>
+        </ul>
+      </div>
+      <div id="ext-high" class="hidden">
+        <div class="alert w"><span class="alert-icon">⚠️</span><strong>Factores: Mallampati III-IV, cirugía cuello/cara, edema laríngeo, intubación difícil, hematoma compresivo.</strong></div>
+        <ul class="steps">
+          <li class="step"><div class="sn w">1</div><div class="st"><strong>Extubación vigil</strong> — despierto y cooperador</div></li>
+          <li class="step"><div class="sn w">2</div><div class="st"><strong>Guía de intercambio (AEC)</strong> insertada antes de retirar tubo. Permite reintubación.</div></li>
+          <li class="step"><div class="sn w">3</div><div class="st"><strong>Test de fuga de cuff:</strong> Desinflar — flujo audible alrededor del tubo = positivo</div></li>
+          <li class="step"><div class="sn w">4</div><div class="st"><span class="drug">Dexametasona</span> <span class="dose">8 mg IV</span> 4h antes si edema laríngeo previsto</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALC DOSIS -->
+<div id="section-calc-dosis" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Dosis de Fármacos por Peso</span></div>
+    <div class="card-body">
+      <div class="cform">
+        <div class="crow">
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="dosis-peso" type="number" value="70" style="width:90px"></div>
+          <div class="cg"><div class="cl">Fármaco</div>
+            <select class="cs" id="dosis-drug">
+              <optgroup label="— Inducción —">
+                <option value="propofol-ind">Propofol (inducción)</option>
+                <option value="propofol-mant">Propofol (mantenimiento)</option>
+                <option value="ketamina-ind">Ketamina (anestesia)</option>
+                <option value="ketamina-dis">Ketamina (disociativa)</option>
+                <option value="etomidato">Etomidato</option>
+                <option value="tiopental">Tiopental</option>
+              </optgroup>
+              <optgroup label="— Relajantes —">
+                <option value="succinilcolina">Succinilcolina</option>
+                <option value="rocuronio-int">Rocuronio (intubación)</option>
+                <option value="rocuronio-isr">Rocuronio (ISR 1.2 mg/kg)</option>
+                <option value="rocuronio-mant">Rocuronio (mantenimiento)</option>
+                <option value="vecuronio">Vecuronio</option>
+                <option value="atracurio">Atracurio</option>
+                <option value="cisatracurio">Cisatracurio</option>
+              </optgroup>
+              <optgroup label="— Reversión —">
+                <option value="sugammadex-prof">Sugammadex (profundo T0-T1)</option>
+                <option value="sugammadex-mod">Sugammadex (moderado T2)</option>
+                <option value="sugammadex-leve">Sugammadex (leve ≥T3)</option>
+                <option value="sugammadex-emerg">Sugammadex (emergencia)</option>
+                <option value="neostigmina">Neostigmina + Atropina</option>
+              </optgroup>
+              <optgroup label="— Opioides —">
+                <option value="fentanilo">Fentanilo IV</option>
+                <option value="morfina">Morfina IV</option>
+                <option value="remifentanilo">Remifentanilo (infusión)</option>
+                <option value="tramadol">Tramadol IV</option>
+                <option value="hidromorfona">Hidromorfona IV</option>
+              </optgroup>
+              <optgroup label="— Benzodiacepinas —">
+                <option value="midazolam">Midazolam</option>
+                <option value="diazepam">Diazepam IV</option>
+              </optgroup>
+              <optgroup label="— Otros —">
+                <option value="atropina">Atropina</option>
+                <option value="glicopirrolato">Glicopirrolato</option>
+                <option value="dexametasona">Dexametasona</option>
+                <option value="ondansetron">Ondansetron</option>
+                <option value="ketorolac">Ketorolac</option>
+                <option value="paracetamol">Paracetamol IV</option>
+                <option value="lidocaina-iv">Lidocaína IV sistémica</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <button class="cbtn" onclick="calcDosis()">Calcular</button>
+        <div class="cres" id="dosis-res" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VASOPRESORES -->
+<div id="section-calc-vasopresores" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Vasopresores e Inotrópicos</span></div>
+    <div class="card-body">
+      <div class="cform">
+        <div class="crow">
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="vaso-peso" type="number" value="70" style="width:90px"></div>
+          <div class="cg"><div class="cl">Fármaco</div>
+            <select class="cs" id="vaso-drug">
+              <option value="noradrenalina">Noradrenalina</option>
+              <option value="adrenalina">Adrenalina (vasopresor)</option>
+              <option value="fenilefrina">Fenilefrina</option>
+              <option value="dopamina">Dopamina</option>
+              <option value="dobutamina">Dobutamina</option>
+              <option value="efedrina">Efedrina (bolo)</option>
+              <option value="vasopresina">Vasopresina</option>
+              <option value="nitroglicerina">Nitroglicerina</option>
+              <option value="nitroprusito">Nitroprusito</option>
+              <option value="esmolol">Esmolol</option>
+              <option value="labetalol">Labetalol (bolo)</option>
+              <option value="metaraminol">Metaraminol</option>
+            </select>
+          </div>
+          <div class="cg"><div class="cl">Dilución</div>
+            <select class="cs" id="vaso-dil"><option value="50">50 mL</option><option value="100" selected>100 mL</option><option value="250">250 mL</option></select>
+          </div>
+        </div>
+        <button class="cbtn" onclick="calcVaso()">Calcular infusión</button>
+        <div class="cres" id="vaso-res" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FLUIDOS -->
+<div id="section-calc-fluidos" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Fluidos, Transfusión y Hemoderivados</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'fl-calc')">Calculadora</div><div class="tab" onclick="tab(this,'fl-guia')">Guía Transfusional</div></div>
+      <div id="fl-calc">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="fl-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Altura (cm)</div><input class="ci" id="fl-alt" type="number" value="170" style="width:90px"></div>
+            <div class="cg"><div class="cl">Hb (g/dL)</div><input class="ci" id="fl-hb" type="number" value="13" step="0.1" style="width:90px"></div>
+            <div class="cg"><div class="cl">Sexo</div><select class="cs" id="fl-sexo"><option value="M">M</option><option value="F">F</option></select></div>
+          </div>
+          <button class="cbtn" onclick="calcFluidos()">Calcular</button>
+          <div class="cres" id="fl-res" style="display:none"></div>
+        </div>
+      </div>
+      <div id="fl-guia" class="hidden">
+        <table class="tbl"><thead><tr><th>Hemoderivado</th><th>Umbral/Indicación</th><th>Dosis</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">GR concentrado</td><td>Hb &lt;7 (estable) / &lt;8 (cardíaco) / &lt;10 sangrado activo</td><td class="dd">1 U ↑ Hb ~1 g/dL</td><td class="dnote">250–350 mL/unidad</td></tr>
+          <tr><td class="dn">PFC</td><td>INR &gt;1.5 + sangrado / PT &lt;50%</td><td class="dd">10–15 mL/kg</td><td class="dnote">Descongelar 20–30 min</td></tr>
+          <tr><td class="dn">Plaquetas</td><td>Plt &lt;50k + sangrado / &lt;100k neurología</td><td class="dd">1 pool ↑ ~25–50k</td><td class="dnote">200–300 mL/pool</td></tr>
+          <tr><td class="dn">Crioprecipitado</td><td>Fibrinógeno &lt;1.5 g/L</td><td class="dd">1 U/10 kg</td><td class="dnote">Rico en Fbg / FvW / FVIII</td></tr>
+          <tr><td class="dn">Fibrinógeno conc.</td><td>Fbg &lt;1.5–2 g/L</td><td class="dd">25–50 mg/kg (2–4g)</td><td class="dnote">Más rápido que crioprecipitado</td></tr>
+          <tr><td class="dn">Ác. Tranexámico</td><td>Cirugía sangrado previsto / trauma</td><td class="dd">1–2 g IV lento</td><td class="dnote">Iniciar ANTES del corte</td></tr>
+          <tr><td class="dn">CHP (4 factores)</td><td>Coagulopatía / reversión ACO</td><td class="dd">25–50 UI/kg</td><td class="dnote">Factores II,VII,IX,X</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MEDIO INTERNO -->
+<div id="section-calc-medio" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Medio Interno — HCO₃, Na⁺, K⁺, Ca²⁺</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'mi-hco3')">HCO₃</div>
+        <div class="tab" onclick="tab(this,'mi-na')">Na⁺</div>
+        <div class="tab" onclick="tab(this,'mi-k')">K⁺</div>
+        <div class="tab" onclick="tab(this,'mi-ca')">Ca²⁺</div>
+      </div>
+      <div id="mi-hco3">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="hco3-p" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">HCO₃ actual</div><input class="ci" id="hco3-a" type="number" value="18" step="0.1" style="width:90px"></div>
+            <div class="cg"><div class="cl">HCO₃ target</div><input class="ci" id="hco3-t" type="number" value="22" step="0.1" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcHCO3()">Calcular</button>
+          <div class="cres" id="hco3-res" style="display:none"></div>
+        </div>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div>Fórmula: NaHCO₃ (mEq) = 0.3 × Peso × (target − actual). Administrar 50% en 30 min → reevaluar.</div></div>
+      </div>
+      <div id="mi-na" class="hidden">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="na-p" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Na actual</div><input class="ci" id="na-a" type="number" value="128" style="width:90px"></div>
+            <div class="cg"><div class="cl">Na target</div><input class="ci" id="na-t" type="number" value="135" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcNa()">Calcular</button>
+          <div class="cres" id="na-res" style="display:none"></div>
+        </div>
+        <hr class="divider">
+        <table class="tbl"><thead><tr><th>Situación</th><th>Manejo</th><th>Velocidad</th></tr></thead><tbody>
+          <tr><td>Hiponatremia &lt;120 sintomática</td><td class="dd">ClNa 3% IV</td><td class="dnote">1–2 mEq/L/h × 3–4h. Máx 8–10 mEq/24h</td></tr>
+          <tr><td>Hipernatremia &gt;150</td><td class="dd">G5% IV o agua VO</td><td class="dnote">Reducción 0.5–1 mEq/L/h. Máx 10 mEq/24h</td></tr>
+        </tbody></table>
+      </div>
+      <div id="mi-k" class="hidden">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">K actual</div><input class="ci" id="k-a" type="number" value="3.2" step="0.1" style="width:90px"></div>
+            <div class="cg"><div class="cl">K target</div><input class="ci" id="k-t" type="number" value="4.0" step="0.1" style="width:90px"></div>
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="k-p" type="number" value="70" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcK()">Calcular</button>
+          <div class="cres" id="k-res" style="display:none"></div>
+        </div>
+        <hr class="divider">
+        <table class="tbl"><thead><tr><th>K⁺</th><th>Severidad</th><th>Manejo urgente</th></tr></thead><tbody>
+          <tr><td class="dd">&gt;6.5</td><td><span class="badge bd">Severo</span></td><td class="dnote">Ca gluconato 1g → Bicarb 1mEq/kg → Insulina 10U+G50% → Salbutamol 10mg → Diálisis</td></tr>
+          <tr><td class="dd">5.5–6.5</td><td><span class="badge bw">Moderado</span></td><td class="dnote">Insulina+glucosa, kayexalato, furosemida. ECG obligatorio.</td></tr>
+          <tr><td class="dd">&lt;3.0</td><td><span class="badge bd">Severo</span></td><td class="dnote">KCl IV máx 40 mEq/h CVC. Reponer Mg²⁺ concomitante. ECG continuo.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="mi-ca" class="hidden">
+        <table class="tbl"><thead><tr><th>Ca²⁺ iónico</th><th>Clínica</th><th>Tratamiento</th></tr></thead><tbody>
+          <tr><td class="dd">&lt;0.9 mmol/L</td><td>Espasmo, tetania, ↑QT, arritmias</td><td class="dnote"><strong>Gluconato Ca 10% 10–20 mL IV lento (5 min)</strong> o ClorCa 10% 5–10 mL</td></tr>
+          <tr><td class="dd">0.9–1.1</td><td>Leve</td><td class="dnote">Gluconato Ca 10 mL IV → infusión 0.5–1 mmol/h</td></tr>
+          <tr><td class="dd">&gt;3.0</td><td>Hipercalcemia severa</td><td class="dnote">SF 200–300 mL/h → furosemida 40 mg → bifosfonatos → hemodiálisis</td></tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div><strong>Ca corregido = Ca total + 0.8 × (4 − Albúmina g/dL).</strong> Mejor: Ca iónico en gasometría directamente.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIVA/TCI AVANZADO -->
+<div id="section-calc-tiva" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">TIVA / TCI Avanzado — FK/FD</span><span class="tag ti">Marsh · Schnider · Minto</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'tci-prop')">Propofol TCI</div>
+        <div class="tab" onclick="tab(this,'tci-remi')">Remifentanilo</div>
+        <div class="tab" onclick="tab(this,'tci-tiva')">TIVA Manual</div>
+        <div class="tab" onclick="tab(this,'tci-ref')">Modelos FK</div>
+        <div class="tab" onclick="tab(this,'tci-int')">Interacciones</div>
+      </div>
+      <div id="tci-prop">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="tci-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Edad (años)</div><input class="ci" id="tci-edad" type="number" value="40" style="width:90px"></div>
+            <div class="cg"><div class="cl">Altura (cm)</div><input class="ci" id="tci-alt" type="number" value="170" style="width:90px"></div>
+            <div class="cg"><div class="cl">Modelo</div><select class="cs" id="tci-modelo"><option value="schnider">Schnider</option><option value="marsh">Marsh</option></select></div>
+            <div class="cg"><div class="cl">Target Ce (mcg/mL)</div><input class="ci" id="tci-ce" type="number" value="4" step="0.5" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcTCI()">Calcular TCI</button>
+          <div class="cres" id="tci-res" style="display:none"></div>
+        </div>
+      </div>
+      <div id="tci-remi" class="hidden">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="remi-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Modo</div><select class="cs" id="remi-modo"><option value="ind">Inducción</option><option value="mant">Mantenimiento</option><option value="anal">Analgesia leve</option></select></div>
+          </div>
+          <button class="cbtn" onclick="calcRemi()">Calcular</button>
+          <div class="cres" id="remi-res" style="display:none"></div>
+        </div>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div><strong>Hiperalgesia:</strong> Agregar AINEs/paracetamol 30 min antes de finalizar. Reducir dosis en extubación.</div></div>
+      </div>
+      <div id="tci-tiva" class="hidden">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="tiva-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Fase</div><select class="cs" id="tiva-modo"><option value="ind">Inducción</option><option value="prof">Mantenimiento profundo</option><option value="mod">Mantenimiento moderado</option><option value="sed">Sedación</option></select></div>
+          </div>
+          <button class="cbtn" onclick="calcTIVA()">Calcular TIVA</button>
+          <div class="cres" id="tiva-res" style="display:none"></div>
+        </div>
+      </div>
+      <div id="tci-ref" class="hidden">
+        <table class="tbl"><thead><tr><th>Modelo</th><th>Ce inducción</th><th>Ce mantenimiento</th><th>Requisitos</th></tr></thead><tbody>
+          <tr><td class="dn">Propofol — Schnider</td><td class="dd">4–6 mcg/mL</td><td class="dd">2.5–4 mcg/mL</td><td class="dnote">Edad, altura, peso, sexo. Más preciso en adultos.</td></tr>
+          <tr><td class="dn">Propofol — Marsh</td><td class="dd">4–8 mcg/mL</td><td class="dd">3–5 mcg/mL</td><td class="dnote">Solo peso. Más sencillo. V1 Marsh = 228 mL/kg.</td></tr>
+          <tr><td class="dn">Remifentanilo — Minto</td><td class="dd">4–8 ng/mL</td><td class="dd">2–6 ng/mL</td><td class="dnote">Con propofol 3–5 ng/mL rango habitual.</td></tr>
+          <tr><td class="dn">Sufentanilo — Gepts</td><td class="dd">0.4–0.8 ng/mL</td><td class="dd">0.2–0.4 ng/mL</td><td class="dnote">Mayor duración. Reduce reflejo opioide.</td></tr>
+          <tr><td class="dn">Dexmedetomidina</td><td class="dd">0.6–1 mcg/kg/h</td><td class="dd">0.2–0.7 mcg/kg/h</td><td class="dnote">No modelo TCI estándar. Sedación cooperativa.</td></tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div><strong>BIS objetivo:</strong> Anestesia general 40–60 · Sedación profunda 60–70 · Sedación consciente 70–80. ETCO₂ y TOF son mandatorios con TIVA.</div></div>
+      </div>
+      <div id="tci-int" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">INTERACCIONES CLINICAMENTE RELEVANTES</div>
+        <table class="tbl"><thead><tr><th>Combinación</th><th>Efecto</th><th>Acción</th></tr></thead><tbody>
+          <tr><td class="dn">Propofol + Remi</td><td>Sinergia hipnótico-opioide. ↓↓ dosis ambos</td><td class="dnote">Reducir Ce propofol 25–35% al agregar remi</td></tr>
+          <tr><td class="dn">Ketamina + Propofol</td><td>Ketamina atenúa depresión CV del propofol</td><td class="dnote">Ratio 1:4 (ketamina:propofol) en jeringa combinada</td></tr>
+          <tr><td class="dn">Midazolam + Propofol</td><td>↑ hipnosis · ↓ dosis inducción ~25%</td><td class="dnote">Premedicación con midazolam → reducir propofol</td></tr>
+          <tr><td class="dn">Halogenado + Remi</td><td>↓ CAM del halogenado (↓35–40% con remi 2–4 ng/mL)</td><td class="dnote">Titular vaporizador con BIS/AEP</td></tr>
+          <tr><td class="dn">ISRS + Tramadol</td><td>Riesgo síndrome serotoninérgico</td><td class="dnote">Usar morfina/fentanilo. Evitar tramadol.</td></tr>
+          <tr><td class="dn">MAOIs + Meperidina</td><td>Crisis hipertensiva / síndrome serotoninérgico grave</td><td class="dnote">CONTRAINDICADO. Usar morfina con extrema precaución.</td></tr>
+          <tr><td class="dn">Bloqueantes Ca + Dantroleno</td><td>Hiperpotasemia severa + depresión cardíaca</td><td class="dnote">CONTRAINDICADO en HM.</td></tr>
+          <tr><td class="dn">Aminoglucósidos + RNM</td><td>Potenciación bloqueo neuromuscular</td><td class="dnote">TOF más frecuente. Considerar ↑ reversión.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VENTILACION -->
+<div id="section-calc-vent" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Ventilación Mecánica Perioperatoria</span><span class="tag ti">PROVE Network · ARDSNet</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'vent-calc')">Calculadora</div>
+        <div class="tab" onclick="tab(this,'vent-prot')">Protocolos</div>
+        <div class="tab" onclick="tab(this,'vent-ards')">SDRA / ARDS</div>
+        <div class="tab" onclick="tab(this,'vent-ext')">Extubación / Weaning</div>
+        <div class="tab" onclick="tab(this,'vent-spc')">Poblaciones Especiales</div>
+      </div>
+      <div id="vent-calc">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso real (kg)</div><input class="ci" id="vent-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Altura (cm)</div><input class="ci" id="vent-alt" type="number" value="170" style="width:90px"></div>
+            <div class="cg"><div class="cl">Sexo</div><select class="cs" id="vent-sexo"><option value="M">M</option><option value="F">F</option></select></div>
+            <div class="cg"><div class="cl">PaO₂ (mmHg)</div><input class="ci" id="vent-pao2" type="number" value="90" style="width:90px"></div>
+            <div class="cg"><div class="cl">FiO₂ (%)</div><input class="ci" id="vent-fio2" type="number" value="50" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcVent()">Calcular</button>
+          <div class="cres" id="vent-res" style="display:none"></div>
+        </div>
+      </div>
+      <div id="vent-prot" class="hidden">
+        <div class="g2">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">VENTILACIÓN PROTECTORA PERIOPERATORIA (PROVE Network)</div>
+            <div class="small" style="margin-bottom:3px">• VT: <strong>6–8 mL/kg peso ideal</strong></div>
+            <div class="small" style="margin-bottom:3px">• PEEP: <strong>6–8 cmH₂O</strong> (intraoperatorio estándar)</div>
+            <div class="small" style="margin-bottom:3px">• Pplat: <strong>&lt;30 cmH₂O</strong></div>
+            <div class="small" style="margin-bottom:3px">• Driving pressure: <strong>&lt;15 cmH₂O</strong></div>
+            <div class="small" style="margin-bottom:3px">• FR: 12–16/min (ajustar ETCO₂ 35–45)</div>
+            <div class="small" style="margin-bottom:3px">• FiO₂: mínima para SpO₂ 94–98%</div>
+            <div class="small">• Maniobras de reclutamiento: 30–40 cmH₂O × 30s post-desconexión</div>
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">PARÁMETROS OBJETIVOS INTRAOPERATORIOS</div>
+            <div class="small" style="margin-bottom:3px">• SpO₂: 94–98% (no hipoxia, no hiperoxia)</div>
+            <div class="small" style="margin-bottom:3px">• ETCO₂: 35–45 mmHg (ajustar si laparoscopia: 40–45)</div>
+            <div class="small" style="margin-bottom:3px">• PaFi: &gt;300 normal | 200–300 leve | 100–200 moderado | &lt;100 severo</div>
+            <div class="small" style="margin-bottom:3px">• Laparoscopia: ↑ PEEP 2–4 cmH₂O, ↑ FR para compensar CO₂</div>
+            <div class="small">• Prono intraop: verificar posición ETT y presiones cada 30 min</div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">MODOS VENTILATORIOS — REFERENCIA</div>
+        <table class="tbl"><thead><tr><th>Modo</th><th>Control</th><th>Uso habitual</th><th>Ventaja</th></tr></thead><tbody>
+          <tr><td class="dn">VCV (Volumen control)</td><td>Volumen fijo</td><td>Estándar intraop.</td><td class="dnote">VT garantizado. Pico variable.</td></tr>
+          <tr><td class="dn">PCV (Presión control)</td><td>Presión fija</td><td>Pulmón dañado, obesidad</td><td class="dnote">Pico limitado. VT variable.</td></tr>
+          <tr><td class="dn">PSV (Presión soporte)</td><td>Gatillo paciente</td><td>Weaning, CAM mínimo</td><td class="dnote">Confort. Requiere trigger.</td></tr>
+          <tr><td class="dn">SIMV</td><td>Mixto</td><td>Transición ventilador-espontáneo</td><td class="dnote">Uso decreciente en favor PSV.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="vent-ards" class="hidden">
+        <div class="alert d"><span class="alert-icon">🚨</span><strong>SDRA Intraoperatorio: diagnóstico + inicio de protocolo ARDSNet inmediato.</strong></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">CRITERIOS DE BERLÍN (2012)</div>
+        <table class="tbl"><thead><tr><th>Severidad</th><th>PaFi</th><th>PEEP mínimo</th><th>Mortalidad aprox.</th></tr></thead><tbody>
+          <tr><td><span class="badge bw">LEVE</span></td><td class="dd">200–300</td><td>≥5 cmH₂O</td><td>27%</td></tr>
+          <tr><td><span class="badge bd">MODERADO</span></td><td class="dd">100–200</td><td>≥5 cmH₂O</td><td>32%</td></tr>
+          <tr><td><span class="badge bd">SEVERO</span></td><td class="dd">&lt;100</td><td>≥5 cmH₂O</td><td>45%</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">PROTOCOLO ARDSNet</div>
+        <ul class="steps">
+          <li class="step"><div class="sn d">1</div><div class="st">VT <strong>6 mL/kg peso ideal</strong> (nunca &gt;8 mL/kg) · FR hasta 35/min para pH &gt;7.30</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st">Pplat <strong>&lt;30 cmH₂O</strong> · Si supera: reducir VT hasta 4 mL/kg</div></li>
+          <li class="step"><div class="sn d">3</div><div class="st">PEEP según tabla FiO₂/PEEP ARDSNet. SpO₂ objetivo 88–95%</div></li>
+          <li class="step"><div class="sn w">4</div><div class="st"><strong>Decúbito prono</strong> si PaFi &lt;150 con FiO₂ ≥60% · Mínimo 16h continuo (PROSEVA trial)</div></li>
+          <li class="step"><div class="sn w">5</div><div class="st"><strong>Relajación neuromuscular</strong> (cisatracurio) en primeras 48h si PaFi &lt;150 (ACURASYS/ROSE trial — evidencia mixta)</div></li>
+        </ul>
+        <div class="alert i" style="margin-top:8px"><span class="alert-icon">ℹ️</span><div><strong>Tabla FiO₂/PEEP (ARDSNet ARDS Network):</strong> FiO₂ 30–40%→PEEP 5–8 · FiO₂ 50%→PEEP 8–10 · FiO₂ 60%→PEEP 10 · FiO₂ 70%→PEEP 10–14 · FiO₂ 80%→PEEP 14 · FiO₂ 90–100%→PEEP 18–24</div></div>
+      </div>
+      <div id="vent-ext" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CRITERIOS DE EXTUBACIÓN / READINESS</div>
+        <div class="g2">
+          <div>
+            <div style="color:var(--accent2);font-family:var(--mono);font-size:10px;margin-bottom:5px">CRITERIOS CLÍNICOS</div>
+            <div class="small" style="margin-bottom:3px">✓ Despierto, cooperador, sigue órdenes</div>
+            <div class="small" style="margin-bottom:3px">✓ TOF ratio &gt;0.9 (cuantitativo preferible)</div>
+            <div class="small" style="margin-bottom:3px">✓ SpO₂ &gt;95% FiO₂ &lt;40%</div>
+            <div class="small" style="margin-bottom:3px">✓ VT espontáneo &gt;5 mL/kg</div>
+            <div class="small" style="margin-bottom:3px">✓ FR &lt;25/min, estable</div>
+            <div class="small" style="margin-bottom:3px">✓ Head-lift sostenido &gt;5 s</div>
+            <div class="small">✓ Normotérmico, estable HD</div>
+          </div>
+          <div>
+            <div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:5px">PRUEBA DE VENTILACIÓN ESPONTÁNEA (PVE)</div>
+            <div class="small" style="margin-bottom:3px">• PSV 5–8 cmH₂O + PEEP 5 × 30–120 min</div>
+            <div class="small" style="margin-bottom:3px">• FR/VT (índice de Yang-Tobin): &lt;105 = favorable</div>
+            <div class="small" style="margin-bottom:3px">• PAUSA si: FR &gt;35, SpO₂ &lt;90%, FC ±20%, diaforesis</div>
+            <div class="small" style="margin-bottom:3px">• Índice Tobin: FR/VT (L) &lt;105 = puede extubar</div>
+            <div class="small">• P0.1 &lt;4 cmH₂O, PIMax &lt;−25 cmH₂O son buenos predictores</div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">FRACASO EXTUBACIÓN — PREDICTORES</div>
+        <table class="tbl"><thead><tr><th>Factor</th><th>Acción</th></tr></thead><tbody>
+          <tr><td>VA difícil conocida</td><td class="dnote">AEC (guía de intercambio) antes de extubar. Extubación vigil.</td></tr>
+          <tr><td>Edema laríngeo previsto</td><td class="dnote">Dexametasona 8mg IV × 4h antes. Test fuga de cuff.</td></tr>
+          <tr><td>Obeso + SAOS</td><td class="dnote">Posición 30–45°. CPAP disponible inmediato post-extubación.</td></tr>
+          <tr><td>Bloqueo residual (TOF &lt;0.9)</td><td class="dnote">Sugammadex → esperar TOF &gt;0.9 cuantitativo antes de extubar.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="vent-spc" class="hidden">
+        <table class="tbl"><thead><tr><th>Población</th><th>VT</th><th>PEEP</th><th>Consideraciones</th></tr></thead><tbody>
+          <tr><td class="dn">Obesidad (IMC&gt;35)</td><td class="dd">6 mL/kg PI</td><td>8–10 cmH₂O</td><td class="dnote">Nunca VT por peso real. PEEP alto para FRC. Posición 30° cabeza arriba. Prono difícil pero posible.</td></tr>
+          <tr><td class="dn">EPOC</td><td class="dd">8 mL/kg PI</td><td>PEEP intrínseco</td><td class="dnote">FR baja (10–14). I:E 1:3–1:4 para evitar atrapamiento. FiO₂ mínima, cuidado hipoxia permisiva.</td></tr>
+          <tr><td class="dn">Embarazo</td><td class="dd">6–8 mL/kg PI</td><td>5 cmH₂O</td><td class="dnote">SpO₂ &gt;95%, ETCO₂ 30–35. Desplazamiento útero izq. Atención apnea rápida (↓FRC). Tilt 15°.</td></tr>
+          <tr><td class="dn">Cirugía torácica (OLV)</td><td class="dd">4–5 mL/kg PI</td><td>5 cmH₂O</td><td class="dnote">Ventilación unipulmonar. FR para normocapnia. CPAP pulmón dependiente si hipoxia. Suction intermitente.</td></tr>
+          <tr><td class="dn">Laparoscopia</td><td class="dd">6–8 mL/kg PI</td><td>6–8 cmH₂O</td><td class="dnote">↑ ETCO₂ post-insuflación. ↑ FR 2–4/min. Trendelenburg: ↑ riesgo regurgitación y ↑ PIM.</td></tr>
+          <tr><td class="dn">Neurocirugía</td><td class="dd">6–8 mL/kg PI</td><td>0–5 cmH₂O</td><td class="dnote">PEEP mínimo para PIC. Normocapnia (35–40). Evitar hipercapnia. Posición cabeza 30°. Manitol/NaCl 3% si PIC ↑.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- POCUS -->
+<div id="section-pocus" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">POCUS / ECHO</span><span class="card-hdr-title">Ultrasonido Point-of-Care</span><span class="tag ti">WINFOCUS / ASE</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'poc-fate')">FATE / ECHO básico</div>
+        <div class="tab" onclick="tab(this,'poc-rush')">RUSH Protocol</div>
+        <div class="tab" onclick="tab(this,'poc-vc')">Vena Cava / VVS</div>
+        <div class="tab" onclick="tab(this,'poc-pulm')">Pulmón</div>
+        <div class="tab" onclick="tab(this,'poc-nerve')">Nervios</div>
+      </div>
+      <div id="poc-fate">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">FATE — Focus Assessed Transthoracic Echo (4 ventanas)</div>
+        <table class="tbl"><thead><tr><th>Ventana</th><th>Vista</th><th>Evalúa</th><th>Hallazgo clave</th></tr></thead><tbody>
+          <tr><td class="dn">Subcostal</td><td>4 cámaras</td><td>Derrame pericárdico · Función VD/VI global</td><td class="dnote">Derrame &gt;1 cm anterior = significativo</td></tr>
+          <tr><td class="dn">Paraesternal izq.</td><td>Eje largo (PLAX)</td><td>Función VI · FEVI estimada · Válvulas Ao/Mi</td><td class="dnote">EPSS &gt;7 mm sugiere ↓ FEVI</td></tr>
+          <tr><td class="dn">Paraesternal izq.</td><td>Eje corto (PSAX)</td><td>Contractilidad regional · Septal bowing</td><td class="dnote">Signo D = sobrecarga VD / TEP</td></tr>
+          <tr><td class="dn">Apical</td><td>4 cámaras (A4C)</td><td>Biventricular · Llenado · Trombos</td><td class="dnote">ITV-LVSOT → Gasto cardíaco estimado</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">ESTIMACIÓN RÁPIDA FEVI</div>
+        <div class="g3">
+          <div style="background:var(--bg);border:1px solid rgba(0,255,157,.2);border-radius:4px;padding:10px"><div style="color:var(--accent2);font-family:var(--mono);font-size:10px;margin-bottom:4px">NORMAL</div><div class="small">&gt;55% · Contracción vigorosa · Pared engrosada</div></div>
+          <div style="background:var(--bg);border:1px solid rgba(255,184,0,.2);border-radius:4px;padding:10px"><div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:4px">REDUCIDA</div><div class="small">30–55% · Contracción disminuida · Dilatación</div></div>
+          <div style="background:var(--bg);border:1px solid rgba(255,61,61,.25);border-radius:4px;padding:10px"><div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:4px">SEVERA</div><div class="small">&lt;30% · Casi sin contracción · FEVI nula</div></div>
+        </div>
+      </div>
+      <div id="poc-rush" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">RUSH — Rapid Ultrasound for Shock and Hypotension</div>
+        <table class="tbl"><thead><tr><th>Paso</th><th>Evalúa</th><th>Interpretación</th></tr></thead><tbody>
+          <tr><td class="dn">Bomba (Pump)</td><td>Echo subxifoideo + parasternal</td><td class="dnote">Taponamiento / ↓FEVI / HipoVD / Shock cardiogénico</td></tr>
+          <tr><td class="dn">Tanque (Tank)</td><td>VCI + colapsabilidad</td><td class="dnote">VCI &lt;1.5 cm + colapsable &gt;50% = Hipovolemia. VCI dilatada + no colapsa = sobrecarga</td></tr>
+          <tr><td class="dn">Tuberías (Pipes)</td><td>Venas ilíacas + aorta abdominal</td><td class="dnote">Aorta &gt;3 cm = AAA. DVT = TEP</td></tr>
+          <tr><td class="dn">Pulmón</td><td>Deslizamiento pleural · Líneas B</td><td class="dnote">Líneas B bilaterales = edema pulmonar. Sin deslizamiento = neumotórax</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div class="g2">
+          <div><div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:6px">SHOCK DISTRIBUTIVO</div><div class="small">VCI colapsable + ↑ FEVI + sin líneas B → Anafilaxia/Séptico → Vasopresores + volumen</div></div>
+          <div><div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:6px">SHOCK OBSTRUCTIVO</div><div class="small">VCI dilatada + VD dilatado + Signo D → TEP / Neumotórax → Causa específica</div></div>
+        </div>
+      </div>
+      <div id="poc-vc" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">VENA CAVA INFERIOR — Respuesta a Volumen</div>
+        <table class="tbl"><thead><tr><th>VCI diámetro</th><th>Colapsabilidad</th><th>Interpretación</th><th>PVC estimada</th></tr></thead><tbody>
+          <tr><td class="dd">&lt;1.5 cm</td><td>&gt;50%</td><td><span class="badge bok">Hipovolemia</span> — responder a volumen</td><td class="dnote">0–5 mmHg</td></tr>
+          <tr><td class="dd">1.5–2.5 cm</td><td>Variable</td><td><span class="badge bw">Indeterminado</span> — evaluar contexto</td><td class="dnote">5–10 mmHg</td></tr>
+          <tr><td class="dd">&gt;2.5 cm</td><td>&lt;20%</td><td><span class="badge bd">Sobrecarga / Hipertensión VD</span></td><td class="dnote">&gt;15 mmHg</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">VARIACIÓN VOLUMEN SISTÓLICO (VVS) — en VMC</div>
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div>VVS &gt;13% → responder a volumen (sensibilidad ~80%). Solo válido: ritmo sinusal, sin arritmias, VMC con VT ≥8 mL/kg. Fórmula: VVS = (VSmáx−VSmin) / VSmedio × 100</div></div>
+      </div>
+      <div id="poc-pulm" class="hidden">
+        <table class="tbl"><thead><tr><th>Hallazgo</th><th>Descripción</th><th>Diagnóstico</th></tr></thead><tbody>
+          <tr><td class="dn">Deslizamiento pleural</td><td>Movimiento parietal-visceral sincrónico</td><td class="dnote">Normal / Descarta neumotórax en ese punto</td></tr>
+          <tr><td class="dn">Sin deslizamiento + Punto pulmón</td><td>Transición neumotórax-pulmón</td><td class="dnote"><strong>Neumotórax</strong> con alta especificidad</td></tr>
+          <tr><td class="dn">Líneas A</td><td>Líneas horizontales repetidas</td><td class="dnote">Normal o Hiperinsuflación (EPOC)</td></tr>
+          <tr><td class="dn">Líneas B ≥3/campo</td><td>Líneas verticales hasta borde imagen</td><td class="dnote">Edema pulmonar / Síndrome alveolo-intersticial</td></tr>
+          <tr><td class="dn">Consolidación</td><td>Imagen "hepática" / broncograma aéreo</td><td class="dnote">Neumonía / Atelectasia</td></tr>
+          <tr><td class="dn">Derrame pleural</td><td>Imagen anecoica supradiafragmática</td><td class="dnote">Eco-guía para toracocentesis</td></tr>
+        </tbody></table>
+      </div>
+      <div id="poc-nerve" class="hidden">
+        <table class="tbl"><thead><tr><th>Bloqueo</th><th>Referencia anatómica</th><th>Transductor / Frecuencia</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Plexo braquial (interescalénico)</td><td>C5-C6-C7 entre ECM y escalenos</td><td class="dnote">Lineal 12–15 MHz</td><td class="dnote">CI: neumotórax contralateral, paresia frénica</td></tr>
+          <tr><td class="dn">Plexo braquial (supraclavicular)</td><td>Racimo de uvas lateral a subclavia</td><td class="dnote">Lineal 12 MHz</td><td class="dnote">Mayor riesgo neumotórax. Bloqueo MMSS completo.</td></tr>
+          <tr><td class="dn">Femoral</td><td>Lateral a arteria femoral, bajo fascia ilíaca</td><td class="dnote">Lineal/curvo 6–12 MHz</td><td class="dnote">Preservar volumen: 10–15 mL ropivacaína 0.2–0.5%</td></tr>
+          <tr><td class="dn">Ciático poplíteo</td><td>Bifurcación del ciático, fosa poplítea</td><td class="dnote">Lineal 10–12 MHz</td><td class="dnote">15–20 mL. Preserva plantarflexión con volúmenes bajos.</td></tr>
+          <tr><td class="dn">TAP (Transversus Abdominis Plane)</td><td>Plano entre OI y TA, línea axilar media</td><td class="dnote">Lineal 6–12 MHz</td><td class="dnote">20 mL c/lado. Ropivacaína 0.25–0.375%</td></tr>
+          <tr><td class="dn">Paravertebral torácico</td><td>Lateral a apófisis espinosa, bajo membrana superior</td><td class="dnote">Lineal/curvo</td><td class="dnote">5 mL/nivel. Analgesia torácica unilateral.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HEMODINAMICA -->
+<div id="section-hemodin" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">MONITOREO</span><span class="card-hdr-title">Monitoreo Hemodinámico Avanzado</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'hd-val')">Valores Normales</div>
+        <div class="tab" onclick="tab(this,'hd-cat')">Catéter AP (Swan-Ganz)</div>
+        <div class="tab" onclick="tab(this,'hd-picco')">PiCCO / LiDCO</div>
+        <div class="tab" onclick="tab(this,'hd-shock')">Perfil de Shock</div>
+      </div>
+      <div id="hd-val">
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Valor Normal</th><th>Unidad</th></tr></thead><tbody>
+          <tr><td>PVC</td><td class="dd">2–8</td><td>mmHg</td></tr>
+          <tr><td>PAP sistólica</td><td class="dd">15–30</td><td>mmHg</td></tr>
+          <tr><td>PAP diastólica</td><td class="dd">8–15</td><td>mmHg</td></tr>
+          <tr><td>PCP (wedge)</td><td class="dd">6–12</td><td>mmHg</td></tr>
+          <tr><td>GC (gasto cardíaco)</td><td class="dd">4–8</td><td>L/min</td></tr>
+          <tr><td>IC (índice cardíaco)</td><td class="dd">2.5–4.0</td><td>L/min/m²</td></tr>
+          <tr><td>RVS</td><td class="dd">700–1600</td><td>dinas·s/cm⁵</td></tr>
+          <tr><td>DO₂ (transporte O₂)</td><td class="dd">520–720</td><td>mL/min/m²</td></tr>
+          <tr><td>VO₂ (consumo O₂)</td><td class="dd">110–160</td><td>mL/min/m²</td></tr>
+          <tr><td>SvO₂ mixta</td><td class="dd">65–75%</td><td>%</td></tr>
+          <tr><td>ScvO₂ (central)</td><td class="dd">70–80%</td><td>%</td></tr>
+        </tbody></table>
+      </div>
+      <div id="hd-cat" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CATÉTER DE ARTERIA PULMONAR (Swan-Ganz)</div>
+        <ul class="steps">
+          <li class="step"><div class="sn b">1</div><div class="st"><strong>Indicaciones:</strong> Fallo cardíaco derecho severo, HAP, SDRA, cirugía cardíaca mayor, shock refractario</div></li>
+          <li class="step"><div class="sn b">2</div><div class="st"><strong>Posiciones:</strong> VD (PVC + R/L) → AP (PAP) → Wedge (PCP): inflar balón 1.5 mL lentamente</div></li>
+          <li class="step"><div class="sn b">3</div><div class="st"><strong>Termodilución:</strong> 10 mL SF frío (0–4°C) o temperatura ambiente. Triplicar y promediar.</div></li>
+        </ul>
+        <table class="tbl" style="margin-top:10px"><thead><tr><th>Complicación</th><th>Prevención/Manejo</th></tr></thead><tbody>
+          <tr><td>Arritmias (inserción)</td><td class="dnote">Lidocaína 1 mg/kg previamente si historia. Desfibrilador listo.</td></tr>
+          <tr><td>Rotura AP</td><td class="dnote">Desinflar balón inmediatamente. Neumonía hemorrágica. Cirugía vascular urgente.</td></tr>
+          <tr><td>Endocarditis / Trombosis</td><td class="dnote">Retirar a las 72h si no indicación activa. Heparina profiláctica.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="hd-picco" class="hidden">
+        <div class="g2">
+          <div><div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:6px">PiCCO — Parámetros</div>
+            <div class="small" style="margin-bottom:3px">• <strong>GEDVI:</strong> 680–800 mL/m² (volemia)</div>
+            <div class="small" style="margin-bottom:3px">• <strong>ITBVI:</strong> 850–1000 mL/m²</div>
+            <div class="small" style="margin-bottom:3px">• <strong>EVLWI:</strong> 3–7 mL/kg (agua pulmonar)</div>
+            <div class="small" style="margin-bottom:3px">• <strong>PVPI:</strong> 1–3 (permeabilidad pulmonar)</div>
+            <div class="small" style="margin-bottom:3px">• <strong>CFI:</strong> 4.5–6.5 /min (función cardíaca)</div>
+            <div class="small" style="margin-bottom:3px">• <strong>VVS:</strong> &lt;10% = normovolemia</div>
+            <div class="small">• <strong>VPS:</strong> &lt;10% = no respondedor a volumen</div>
+          </div>
+          <div><div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:6px">INTERPRETACIÓN RÁPIDA</div>
+            <div class="small" style="margin-bottom:3px">GEDVI ↓ + VVS ↑ → Hipovolemia → Volumen</div>
+            <div class="small" style="margin-bottom:3px">GEDVI ↑ + EVLWI ↑ → Edema pulm. → Diurético/RV</div>
+            <div class="small" style="margin-bottom:3px">CFI ↓ + GEDVI normal → Fallo cardíaco → Inotrópico</div>
+            <div class="small" style="margin-bottom:3px">PVPI &gt;3 → SDRA/Inflamación → Limitar volumen</div>
+          </div>
+        </div>
+      </div>
+      <div id="hd-shock" class="hidden">
+        <table class="tbl"><thead><tr><th>Tipo</th><th>PVC</th><th>PCP</th><th>GC</th><th>RVS</th><th>SvO₂</th><th>Tratamiento</th></tr></thead><tbody>
+          <tr><td class="dn">Hipovolémico</td><td>↓</td><td>↓</td><td>↓</td><td>↑</td><td>↓</td><td class="dnote">Volumen IV · Hemostasia</td></tr>
+          <tr><td class="dn">Cardiogénico</td><td>↑</td><td>↑</td><td>↓</td><td>↑</td><td>↓</td><td class="dnote">Inotrópicos · Diuréticos · BCIA</td></tr>
+          <tr><td class="dn">Distributivo (Séptico)</td><td>↓/N</td><td>↓/N</td><td>↑</td><td>↓↓</td><td>↑/N</td><td class="dnote">Noradrenalina · Hidrocortisona · Volumen</td></tr>
+          <tr><td class="dn">Obstructivo (TEP)</td><td>↑</td><td>↓/N</td><td>↓</td><td>↑</td><td>↓</td><td class="dnote">Trombólisis · Anticoag · ECMO</td></tr>
+          <tr><td class="dn">Anafiláctico</td><td>↓</td><td>↓</td><td>↓</td><td>↓↓</td><td>↑</td><td class="dnote">Adrenalina · Volumen masivo</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PEDIATRIA INTRO -->
+<div id="section-ped-intro" class="hidden fade">
+  <div class="alert p"><span class="alert-icon">👶</span><div><strong>MODO PEDIÁTRICO.</strong> Todos los cálculos ajustados por edad y peso. Usar las calculadoras de cada subsección para dosis exactas.</div></div>
+  <div class="card">
+    <div class="card-hdr"><span class="tag tp">PEDIATRÍA</span><span class="card-hdr-title">Referencia Rápida Pediátrica</span></div>
+    <div class="card-body">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">PESO ESTIMADO POR EDAD (Fórmula de Broselow / APLS)</div>
+      <table class="tbl"><thead><tr><th>Edad</th><th>Peso estimado</th><th>FR normal</th><th>FC normal</th><th>PAS normal</th></tr></thead><tbody>
+        <tr><td>RN (0–1 mes)</td><td class="dd">3–4 kg</td><td>40–60/min</td><td>120–160/min</td><td>60–80 mmHg</td></tr>
+        <tr><td>Lactante (1–12m)</td><td class="dd">4–10 kg</td><td>30–40/min</td><td>100–150/min</td><td>70–90 mmHg</td></tr>
+        <tr><td>1–2 años</td><td class="dd">10–14 kg</td><td>25–35/min</td><td>95–140/min</td><td>80–95 mmHg</td></tr>
+        <tr><td>3–5 años</td><td class="dd">14–20 kg</td><td>22–28/min</td><td>80–120/min</td><td>85–100 mmHg</td></tr>
+        <tr><td>6–10 años</td><td class="dd">20–32 kg</td><td>18–22/min</td><td>70–110/min</td><td>90–110 mmHg</td></tr>
+        <tr><td>&gt;10 años</td><td class="dd">>32 kg</td><td>16–20/min</td><td>60–100/min</td><td>100–120 mmHg</td></tr>
+      </tbody></table>
+      <hr class="divider">
+      <div class="g2">
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">FÓRMULAS RÁPIDAS</div>
+          <div class="small" style="margin-bottom:3px">Peso (1–10a): <strong>(Edad × 2) + 8</strong> kg</div>
+          <div class="small" style="margin-bottom:3px">Peso (10–14a): <strong>(Edad × 3) − 2</strong> kg</div>
+          <div class="small" style="margin-bottom:3px">PAS mín aceptable: <strong>70 + (Edad × 2)</strong> mmHg</div>
+          <div class="small" style="margin-bottom:3px">Tubo ET sin cuff: <strong>(Edad/4) + 4</strong></div>
+          <div class="small" style="margin-bottom:3px">Tubo ET con cuff: <strong>(Edad/4) + 3.5</strong></div>
+          <div class="small">Profundidad tubo: <strong>(Edad/2) + 12</strong> cm</div>
+        </div>
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">FLUIDOS PEDIÁTRICOS</div>
+          <div class="small" style="margin-bottom:3px">Mantenimiento: <strong>4–2–1 mL/kg/h</strong></div>
+          <div class="small" style="margin-bottom:3px">(4 mL/kg/h primeros 10 kg)</div>
+          <div class="small" style="margin-bottom:3px">(+2 mL/kg/h 10–20 kg)</div>
+          <div class="small" style="margin-bottom:3px">(+1 mL/kg/h &gt;20 kg)</div>
+          <div class="small" style="margin-bottom:3px">Carga volumen: <strong>10–20 mL/kg SF</strong></div>
+          <div class="small">VSC: 70–80 mL/kg</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PEDIATRIA DOSIS -->
+<div id="section-ped-dosis" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tp">PEDIATRÍA</span><span class="card-hdr-title">Calculadora de Dosis Pediátricas</span></div>
+    <div class="card-body">
+      <div class="cform">
+        <div class="crow">
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="ped-peso" type="number" value="20" style="width:90px"></div>
+          <div class="cg"><div class="cl">Edad (años)</div><input class="ci" id="ped-edad" type="number" value="5" step="0.5" style="width:90px"></div>
+          <div class="cg"><div class="cl">Fármaco</div>
+            <select class="cs" id="ped-drug">
+              <optgroup label="— Inducción —">
+                <option value="propofol-ped">Propofol</option>
+                <option value="ketamina-ped">Ketamina</option>
+                <option value="sevoflurano-ind">Sevoflurano (CAM referencia)</option>
+                <option value="tiopental-ped">Tiopental</option>
+              </optgroup>
+              <optgroup label="— Relajantes —">
+                <option value="scc-ped">Succinilcolina pediátrica</option>
+                <option value="rocuronio-ped">Rocuronio</option>
+                <option value="atracurio-ped">Atracurio</option>
+              </optgroup>
+              <optgroup label="— Analgesia —">
+                <option value="fentanilo-ped">Fentanilo</option>
+                <option value="morfina-ped">Morfina</option>
+                <option value="paracetamol-ped">Paracetamol IV/VO</option>
+                <option value="ibuprofeno-ped">Ibuprofeno VO</option>
+                <option value="ketorolac-ped">Ketorolac IV</option>
+              </optgroup>
+              <optgroup label="— Emergencia —">
+                <option value="adrenalina-ped">Adrenalina (PCR/anafilaxia)</option>
+                <option value="atropina-ped">Atropina</option>
+                <option value="bicarb-ped">Bicarbonato</option>
+                <option value="glucosa-ped">Glucosa 10%</option>
+                <option value="midazolam-ped">Midazolam</option>
+              </optgroup>
+              <optgroup label="— Antiemético —">
+                <option value="ondansetron-ped">Ondansetron</option>
+                <option value="dexametasona-ped">Dexametasona</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <button class="cbtn" onclick="calcPed()">Calcular dosis pediátrica</button>
+        <div class="cres" id="ped-res" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIA AÉREA PED -->
+<div id="section-ped-via" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tp">PEDIATRÍA</span><span class="card-hdr-title">Vía Aérea Pediátrica</span></div>
+    <div class="card-body">
+      <div class="cform" style="margin-bottom:14px">
+        <div class="crow">
+          <div class="cg"><div class="cl">Edad (años)</div><input class="ci" id="ped-via-edad" type="number" value="5" step="0.5" style="width:90px"></div>
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="ped-via-peso" type="number" value="20" style="width:90px"></div>
+        </div>
+        <button class="cbtn" onclick="calcViaAereaPed()">Calcular materiales</button>
+        <div class="cres" id="ped-via-res" style="display:none"></div>
+      </div>
+      <hr class="divider">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">DIFERENCIAS ANATÓMICAS CLAVE vs ADULTO</div>
+      <table class="tbl"><thead><tr><th>Característica</th><th>Niño</th><th>Implicación clínica</th></tr></thead><tbody>
+        <tr><td>Laringe</td><td>Alta (C3-C4) y anterior</td><td class="dnote">Visión más difícil · Miller recto preferido en &lt;2 años</td></tr>
+        <tr><td>Epiglotis</td><td>Grande, en omega, fláccida</td><td class="dnote">Elevar directamente con pala Miller</td></tr>
+        <tr><td>Punto estrecho</td><td>Subglótico (cricoide) en &lt;8 años</td><td class="dnote">Tubo sin cuff válido hasta 8–10 años</td></tr>
+        <tr><td>Lengua</td><td>Proporcionalmente grande</td><td class="dnote">Obstruye fácilmente · Cánula Guedel importante</td></tr>
+        <tr><td>Cabeza</td><td>Occipucio prominente</td><td class="dnote">Almohada bajo hombros en &lt;2 años (no bajo cabeza)</td></tr>
+        <tr><td>Cuello</td><td>Corto · Tráquea corta</td><td class="dnote">Riesgo intubación selectiva · Verificar posición bilateral</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- RCP PED -->
+<div id="section-ped-rcp" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag td">EMERGENCIA</span><span class="card-hdr-title">RCP Pediátrico</span><span class="tag tp">ILCOR 2021 / PALS</span></div>
+    <div class="card-body">
+      <div class="alert d"><span class="alert-icon">🚨</span><strong>PCR pediátrica generalmente es causa HIPÓXICA. Priorizar oxigenación y ventilación.</strong></div>
+      <div class="cform" style="margin-bottom:14px">
+        <div class="crow">
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="rcp-ped-peso" type="number" value="20" style="width:90px"></div>
+          <div class="cg"><div class="cl">Edad</div><select class="cs" id="rcp-ped-edad"><option value="lactante">Lactante (&lt;1 año)</option><option value="nino" selected>Niño (1–8 años)</option><option value="mayor">Mayor (&gt;8 años)</option></select></div>
+        </div>
+        <button class="cbtn" onclick="calcRCPPed()">Calcular RCP pediátrico</button>
+        <div class="cres" id="rcp-ped-res" style="display:none"></div>
+      </div>
+      <div class="g2">
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">LACTANTE</div>
+          <div class="small" style="margin-bottom:3px">• 2 dedos (1 reanimador)</div>
+          <div class="small" style="margin-bottom:3px">• 2 pulgares rodeando tórax (2 reanimadores)</div>
+          <div class="small" style="margin-bottom:3px">• Profundidad: ≥4 cm</div>
+          <div class="small" style="margin-bottom:3px">• Ratio: 15:2 (2 reanimadores) / 30:2 (1 reanimador)</div>
+        </div>
+        <div><div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">NIÑO (1–8 AÑOS)</div>
+          <div class="small" style="margin-bottom:3px">• 1 o 2 manos, talón de la mano</div>
+          <div class="small" style="margin-bottom:3px">• Profundidad: ≥5 cm (1/3 diámetro AP)</div>
+          <div class="small" style="margin-bottom:3px">• FR: 100–120/min</div>
+          <div class="small" style="margin-bottom:3px">• Ratio: 15:2</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">DESFIBRILACIÓN PEDIÁTRICA</div>
+      <div class="small" style="margin-bottom:3px">• 1er choque: <strong>2 J/kg</strong> · 2do choque: <strong>4 J/kg</strong> · Siguientes: ≥4 J/kg (máx 10 J/kg o adulto)</div>
+      <div class="small">• Parches pediátricos si &lt;10 kg · Anteroposterior si tamaño no permite anterolateral</div>
+    </div>
+  </div>
+</div>
+
+<!-- VENTILACION PED -->
+<div id="section-ped-vent" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tp">PEDIATRÍA</span><span class="card-hdr-title">Ventilación Mecánica Pediátrica</span></div>
+    <div class="card-body">
+      <div class="cform" style="margin-bottom:14px">
+        <div class="crow">
+          <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="vent-ped-peso" type="number" value="20" style="width:90px"></div>
+          <div class="cg"><div class="cl">Edad (años)</div><input class="ci" id="vent-ped-edad" type="number" value="5" step="0.5" style="width:90px"></div>
+        </div>
+        <button class="cbtn" onclick="calcVentPed()">Calcular parámetros</button>
+        <div class="cres" id="vent-ped-res" style="display:none"></div>
+      </div>
+      <hr class="divider">
+      <table class="tbl"><thead><tr><th>Edad</th><th>VT (mL/kg)</th><th>FR (/min)</th><th>PEEP</th><th>FiO₂ inicial</th></tr></thead><tbody>
+        <tr><td>RN pretérmino</td><td class="dd">4–6</td><td>40–60</td><td>4–6 cmH₂O</td><td>0.21–0.30</td></tr>
+        <tr><td>RN término</td><td class="dd">5–7</td><td>35–50</td><td>4–5 cmH₂O</td><td>0.21–0.40</td></tr>
+        <tr><td>Lactante</td><td class="dd">6–8</td><td>25–40</td><td>4–5 cmH₂O</td><td>0.40–0.60</td></tr>
+        <tr><td>1–5 años</td><td class="dd">6–8</td><td>20–30</td><td>5 cmH₂O</td><td>0.40–0.60</td></tr>
+        <tr><td>6–12 años</td><td class="dd">6–8</td><td>15–20</td><td>5 cmH₂O</td><td>0.40–0.60</td></tr>
+        <tr><td>&gt;12 años</td><td class="dd">6–8</td><td>12–16</td><td>5–8 cmH₂O</td><td>0.40–0.60</td></tr>
+      </tbody></table>
+      <div class="alert p" style="margin-top:10px"><span class="alert-icon">⚠️</span><div>Pplat &lt;28 cmH₂O en neonatos/lactantes. Driving pressure &lt;15. Evitar hipocapnia (&lt;35) en neonatos (vasoconstricción pulmonar).</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEDACION -->
+<div id="section-sedacion" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">PROTOCOLO</span><span class="card-hdr-title">Sedación y Analgesia Multimodal</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'sed-farm')">Fármacos</div><div class="tab" onclick="tab(this,'sed-anal')">Analgesia</div></div>
+      <div id="sed-farm">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Bolo</th><th>Infusión</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Propofol</td><td class="dd">0.5–1 mg/kg</td><td class="dd">25–75 mcg/kg/min</td><td class="dnote">Apnea frecuente en bolo</td></tr>
+          <tr><td class="dn">Midazolam</td><td class="dd">0.02–0.05 mg/kg</td><td class="dd">0.03–0.1 mg/kg/h</td><td class="dnote">Acumulación en sedación prolongada</td></tr>
+          <tr><td class="dn">Ketamina</td><td class="dd">0.5–1 mg/kg</td><td class="dd">0.2–0.5 mg/kg/h</td><td class="dnote">Conserva tono VA. Ideal procedimientos breves.</td></tr>
+          <tr><td class="dn">Dexmedetomidina</td><td class="dd">1 mcg/kg en 10 min</td><td class="dd">0.2–0.7 mcg/kg/h</td><td class="dnote">Sedación cooperativa. Sin depresión resp.</td></tr>
+          <tr><td class="dn">Fentanilo</td><td class="dd">0.5–2 mcg/kg</td><td class="dd">0.5–2 mcg/kg/h</td><td class="dnote">Procedimientos dolorosos</td></tr>
+        </tbody></table>
+      </div>
+      <div id="sed-anal" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis</th><th>Intervalo</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Paracetamol IV</td><td class="dd">1 g IV</td><td>c/6–8h</td><td class="dnote">Base multimodal. &lt;50 kg: 15 mg/kg</td></tr>
+          <tr><td class="dn">Ketorolac IV</td><td class="dd">15–30 mg IV</td><td>c/6h (máx 5 días)</td><td class="dnote">CI: IR, HDA, plaquetopenia</td></tr>
+          <tr><td class="dn">Dexametasona</td><td class="dd">4–8 mg IV</td><td>Dosis única preop</td><td class="dnote">Antiemético + analgésico adyuvante</td></tr>
+          <tr><td class="dn">Gabapentina</td><td class="dd">300–600 mg VO</td><td>c/8h</td><td class="dnote">Preoperatorio 2h antes</td></tr>
+          <tr><td class="dn">Lidocaína IV</td><td class="dd">1.5 mg/kg bolo → 1.5 mg/kg/h</td><td>Perioperatorio</td><td class="dnote">↓ opioides, íleo, dolor. ECG monitorizado.</td></tr>
+          <tr><td class="dn">Sulfato Mg IV</td><td class="dd">40–50 mg/kg bolo lento</td><td>Infusión 10–15 mg/kg/h</td><td class="dnote">Antagonista NMDA. Reduce requerimiento opioides.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div id="section-checklist" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">CHECKLIST</span><span class="card-hdr-title">Verificación Pre-Inducción</span><span class="tag tok">WHO / WFSA</span></div>
+    <div class="card-body">
+      <div class="alert i"><span class="alert-icon">ℹ️</span><div>Click en cada ítem para marcar. <button style="background:none;border:1px solid var(--border2);color:var(--text3);padding:2px 8px;border-radius:2px;cursor:pointer;font-family:var(--mono);font-size:10px;margin-left:8px" onclick="resetCL()">↺ Reiniciar</button></div></div>
+      <ul class="cklist" id="checklist">
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Identidad del paciente</strong> — Nombre, DNI, procedimiento confirmado</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Sitio quirúrgico marcado</strong> — Confirmado con equipo</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Consentimiento informado</strong> — Firmado y visible</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Alergias</strong> — Confirmadas · Avisos de látex si corresponde</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Ayuno</strong> — Sólidos ≥6h · Líquidos claros ≥2h</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Vía venosa permeable</strong> — Calibre apropiado</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Monitoreo básico instalado</strong> — ECG · SpO₂ · NIBP · Capnógrafo · BIS</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Máquina anestesia verificada</strong> — Test DRÄGER/GE · Circuito limpio · Vaporizador</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Fármacos preparados y etiquetados</strong> — Hipnótico · Opioide · Relajante · Reversor · Adrenalina</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Vía aérea evaluada</strong> — Mallampati · Apertura oral · Distancia TM</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>VA difícil: equipo disponible</strong> — VL · Bougie · LMA · Kit cricotirotomía</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Pre-oxigenación completa</strong> — SpO₂ &gt;97% · FiO₂ 1.0 ×3 min</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Succión funcional</strong> — Conectada y accesible</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Antibiótico profiláctico</strong> — Administrado 30–60 min antes de incisión</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Calentamiento activo</strong> — Manta · Fluidos calientes · Temperatura objetivo</div></li>
+        <li class="ck-item" onclick="ck(this)"><div class="ck-box"></div><div class="ck-text"><strong>Plan anestésico comunicado</strong> — Técnica y plan emergencia informados al equipo</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- POSICION -->
+<div id="section-posicion" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">PROTOCOLO</span><span class="card-hdr-title">Posicionamiento Quirúrgico</span></div>
+    <div class="card-body">
+      <table class="tbl"><thead><tr><th>Posición</th><th>Puntos Apoyo</th><th>Riesgos</th><th>Precauciones</th></tr></thead><tbody>
+        <tr><td class="dn">Supino</td><td>Occipucio, escápulas, sacro, talones</td><td>UPP sacra, compresión NCP</td><td class="dnote">Almohadas talones. Tilt izq gestante.</td></tr>
+        <tr><td class="dn">Litotomía</td><td>Sacro, corvas (stirrups)</td><td>Sínd. compartamental, lesión NCP</td><td class="dnote">Tiempo &lt;2h. Evitar flexión excesiva.</td></tr>
+        <tr><td class="dn">Prono</td><td>Frente, clavículas, EIAS, rodillas</td><td>PION, lesión plexo braquial, extubación accidental</td><td class="dnote">Ojos protegidos. Abdomen libre. Verificar ETT.</td></tr>
+        <tr><td class="dn">Lateral</td><td>Axila (axillar roll), caderas</td><td>Lesión NCP axilar</td><td class="dnote">Roll 5 cm caudal a axila.</td></tr>
+        <tr><td class="dn">Trendelenburg</td><td>Hombros acolchados</td><td>↑ PIC, edema laríngeo</td><td class="dnote">Verificar posición ETT post-cambio.</td></tr>
+        <tr><td class="dn">Beach chair</td><td>Isquion, espalda</td><td>Hipotensión severa, isquemia cerebral</td><td class="dnote">PAM ≥70 a nivel oído. INVOS/Doppler.</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- NEUROAXIAL -->
+<div id="section-neuroaxial" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">PROTOCOLO</span><span class="card-hdr-title">Anestesia Neuroaxial</span><span class="tag ti">ESRA 2023</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'nax-r')">Raquianestesia</div><div class="tab" onclick="tab(this,'nax-e')">Epidural</div><div class="tab" onclick="tab(this,'nax-c')">Complicaciones</div></div>
+      <div id="nax-r">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis IT</th><th>Nivel</th><th>Duración</th></tr></thead><tbody>
+          <tr><td class="dn">Bupi 0.5% hiperbárica</td><td class="dd">2.5–4 mL (12.5–20 mg)</td><td>T6–T4 (cesárea, cadera)</td><td>90–180 min</td></tr>
+          <tr><td class="dn">Bupi 0.5% isobárica</td><td class="dd">2–3 mL (10–15 mg)</td><td>T10–T8 (MMII, urología)</td><td>90–180 min</td></tr>
+          <tr><td class="dn">Ropivacaína 0.5%</td><td class="dd">2–3 mL</td><td>Similar a bupi</td><td>90–150 min</td></tr>
+          <tr><td class="dn">Fentanilo IT</td><td class="dd">10–25 mcg</td><td>Adyuvante</td><td class="dnote">↑ calidad. Prurito frecuente.</td></tr>
+          <tr><td class="dn">Morfina IT</td><td class="dd">100–200 mcg</td><td>Adyuvante</td><td class="dnote">Analgesia 12–24h. Monitoreo resp. 24h.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="nax-e" class="hidden">
+        <table class="tbl"><thead><tr><th>Indicación</th><th>Fármaco/Dosis</th><th>Mantenimiento</th></tr></thead><tbody>
+          <tr><td>Analgesia parto</td><td class="dd">Bupi 0.1% + Fentanilo 2 mcg/mL: 10–15 mL</td><td class="dnote">Infusión 6–12 mL/h + PCEA 5 mL/15 min</td></tr>
+          <tr><td>Cirugía abdominal</td><td class="dd">Ropivacaína 0.5–0.75%: 15–20 mL</td><td class="dnote">5–12 mL/h (0.2% ropi)</td></tr>
+          <tr><td>Analgesia torácica</td><td class="dd">Bupi 0.125% + Fentanilo 2 mcg/mL</td><td class="dnote">4–8 mL/h. Nivel T4–T8.</td></tr>
+        </tbody></table>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div><strong>Dosis de prueba:</strong> Lidocaína 2% 3mL + Adrenalina 1:200.000. Positivo si ↑FC &gt;20 lpm/60s (intravascular).</div></div>
+      </div>
+      <div id="nax-c" class="hidden">
+        <table class="tbl"><thead><tr><th>Complicación</th><th>Criterio</th><th>Tratamiento</th></tr></thead><tbody>
+          <tr><td class="dn">Hipotensión</td><td>PAS &lt;100 o ↓30%</td><td class="dnote">Efedrina 5–10 mg IV o Fenilefrina 50–100 mcg IV · Fluidos · Tilt izq.</td></tr>
+          <tr><td class="dn">Bradicardia severa</td><td>&lt;40 lpm sintomática</td><td class="dnote">Atropina 0.5–1 mg IV · Adrenalina si refractaria</td></tr>
+          <tr><td class="dn">Bloqueo alto/total</td><td>Apnea + hipotensión + pérd. conciencia</td><td class="dnote">Supino, IOT, vasopresores, RCP si PCR</td></tr>
+          <tr><td class="dn">PDPH</td><td>Cefalea ortostática 24–48h</td><td class="dnote">Cafeína · Analgesia · Parche hemático si refractaria (15–20 mL sangre autóloga)</td></tr>
+          <tr><td class="dn">Hematoma epidural</td><td>↑ dolor + déficit motor/sensitivo</td><td class="dnote">RMN urgente · Laminectomía descompresiva &lt;6–8h</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FARMACOLOGIA AVANZADA -->
+<div id="section-farmaco-av" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">FARMACOLOGÍA</span><span class="card-hdr-title">Farmacología Avanzada — FK/FD</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'fk-hal')">Halogenados</div>
+        <div class="tab" onclick="tab(this,'fk-opio')">Opioides</div>
+        <div class="tab" onclick="tab(this,'fk-rnm')">RNM</div>
+        <div class="tab" onclick="tab(this,'fk-cam')">CAM / CAM-awake</div>
+      </div>
+      <div id="fk-hal">
+        <table class="tbl"><thead><tr><th>Halogenado</th><th>CAM (%)</th><th>Coef. part. sangre/gas</th><th>Metabolismo</th><th>Notas</th></tr></thead><tbody>
+          <tr><td class="dn">Desflurano</td><td class="dd">6.0–7.3</td><td>0.42</td><td>0.02%</td><td class="dnote">Inducción inhalatoria NO (irritante). Recuperación ultrarrápida. Calentador obligatorio.</td></tr>
+          <tr><td class="dn">Sevoflurano</td><td class="dd">2.0–2.5</td><td>0.65</td><td>2–3%</td><td class="dnote">Ideal inducción inhalatoria (no irritante). Compuesto A en circuitos bajos (flujo &gt;2 L/min).</td></tr>
+          <tr><td class="dn">Isoflurano</td><td class="dd">1.15–1.2</td><td>1.4</td><td>0.2%</td><td class="dnote">Estabilidad cardiovascular. Vasodilatación coronaria. Bajo costo.</td></tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div><strong>CAM se reduce:</strong> Opioide (−35–50%) · Benzodiazepina (−20%) · Óxido nitroso (−50–65%) · Ketamina (↑ CAM) · Edad (−6%/década &gt;40a)</div></div>
+      </div>
+      <div id="fk-opio" class="hidden">
+        <table class="tbl"><thead><tr><th>Opioide</th><th>Potencia relativa</th><th>Inicio</th><th>Duración</th><th>Metabolismo</th></tr></thead><tbody>
+          <tr><td class="dn">Morfina</td><td class="dd">1×</td><td>5–10 min IV</td><td>3–5h</td><td class="dnote">Hepático (glucuronidación). M6G activo acumulable en IR.</td></tr>
+          <tr><td class="dn">Fentanilo</td><td class="dd">100×</td><td>1–3 min IV</td><td>30–60 min (bolo)</td><td class="dnote">Hepático. Redistribución rápida. Acumulación en infusión prolongada.</td></tr>
+          <tr><td class="dn">Sufentanilo</td><td class="dd">500–1000×</td><td>1–3 min IV</td><td>30–60 min</td><td class="dnote">Muy lipofílico. Mayor unión proteínas. Menor fluctuación plasmática.</td></tr>
+          <tr><td class="dn">Remifentanilo</td><td class="dd">100–200×</td><td>&lt;1 min</td><td>3–5 min</td><td class="dnote">Esterasas plasmáticas inespecíficas. No acumulación. Hiperalgesia post-TIVA.</td></tr>
+          <tr><td class="dn">Tramadol</td><td class="dd">0.1× (débil)</td><td>30–60 min</td><td>4–6h</td><td class="dnote">Opioide + SNRI. CYP2D6. CI: ISRS, IMAO, epilepsia.</td></tr>
+        </tbody></table>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div><strong>Efectos adversos comunes:</strong> Depresión respiratoria (reversible con <strong>Naloxona 0.1–0.4 mg IV</strong>, repetir c/2–3 min) · Prurito (naloxona 0.04 mg IV u ondansetron) · NVPO · Rigidez torácica (dosis altas rápidas)</div></div>
+      </div>
+      <div id="fk-rnm" class="hidden">
+        <table class="tbl"><thead><tr><th>RNM</th><th>Inicio</th><th>Duración</th><th>Reversor</th><th>Particularidades</th></tr></thead><tbody>
+          <tr><td class="dn">Succinilcolina</td><td class="dd">45–60 s</td><td>10–15 min</td><td>Ninguno (pseudocolinesterasa)</td><td class="dnote">Despolarizante. Fasciculaciones. ↑K⁺ 0.5 mEq/L. CI: miopatías/quemados/denervación crónica.</td></tr>
+          <tr><td class="dn">Rocuronio</td><td class="dd">60–90 s (0.6mg/kg)</td><td>30–60 min</td><td>Sugammadex 2–16 mg/kg</td><td class="dnote">ISR: 1.2 mg/kg. Única alternativa a SCC con reversor disponible (Sugammadex 16 mg/kg = reversión en 3 min).</td></tr>
+          <tr><td class="dn">Vecuronio</td><td class="dd">3–5 min</td><td>25–40 min</td><td>Sugammadex / Neostigmina</td><td class="dnote">Hepático/biliar. ↑ duración en fallo hepático.</td></tr>
+          <tr><td class="dn">Atracurio</td><td class="dd">2–3 min</td><td>20–35 min</td><td>Neostigmina</td><td class="dnote">Eliminación Hofmann + esterasas. Ideal IR/IH. Laudanosin (metabolito epileptógeno en dosis altas).</td></tr>
+          <tr><td class="dn">Cisatracurio</td><td class="dd">2–3 min</td><td>45–60 min</td><td>Neostigmina / Sugammadex</td><td class="dnote">Hofmann. Sin laudanosina clínicamente relevante. Ideal UCI.</td></tr>
+        </tbody></table>
+      </div>
+      <div id="fk-cam" class="hidden">
+        <table class="tbl"><thead><tr><th>Agente</th><th>CAM</th><th>CAM-awake</th><th>CAM-BAR</th></tr></thead><tbody>
+          <tr><td class="dn">Desflurano</td><td class="dd">6.0–7.3%</td><td>2.4%</td><td>1.3 MAC</td></tr>
+          <tr><td class="dn">Sevoflurano</td><td class="dd">2.0–2.5%</td><td>0.6–0.8%</td><td>1.4 MAC</td></tr>
+          <tr><td class="dn">Isoflurano</td><td class="dd">1.15–1.2%</td><td>0.4%</td><td>1.3 MAC</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">FACTORES QUE MODIFICAN CAM</div>
+        <div class="g2">
+          <div><div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:4px">↑ CAM (necesita más)</div>
+            <div class="small" style="margin-bottom:2px">• Hipertermia</div>
+            <div class="small" style="margin-bottom:2px">• Abuso crónico alcohol</div>
+            <div class="small" style="margin-bottom:2px">• Cocaína/Efedrina</div>
+            <div class="small">• Hipertiroidismo</div>
+          </div>
+          <div><div style="color:var(--accent2);font-family:var(--mono);font-size:10px;margin-bottom:4px">↓ CAM (necesita menos)</div>
+            <div class="small" style="margin-bottom:2px">• Edad avanzada (−6%/década)</div>
+            <div class="small" style="margin-bottom:2px">• Hipotermia (−5%/°C)</div>
+            <div class="small" style="margin-bottom:2px">• Opioides, benzodiacepinas</div>
+            <div class="small">• Anemia severa, hipotensión, hipoxia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRISIS POR SÍNTOMA -->
+<div id="section-crisis" class="hidden fade">
+  <div class="sec-title">Crisis por Síntoma — Acceso Directo por Situación Clínica</div>
+  <div class="alert i"><span class="alert-icon">💡</span><div>Seleccioná la situación clínica o escribí en la búsqueda superior. Cada tarjeta lleva al protocolo completo.</div></div>
+
+  <div style="font-family:var(--mono);font-size:10px;color:var(--danger);text-transform:uppercase;letter-spacing:.1em;margin:8px 0 6px">🚨 Inestabilidad Hemodinámica</div>
+  <div class="qgrid">
+    <div class="qc em" onclick="show('calc-vasopresores');document.getElementById('vaso-drug').value='noradrenalina'"><div class="qc-icon">📉</div><div class="qc-title">Hipotensión post-inducción</div><div class="qc-sub">Fenilefrina · Efedrina · Vasopresores</div></div>
+    <div class="qc em" onclick="show('hemodin');setTimeout(()=>document.querySelector('#section-hemodin .tab').click(),50)"><div class="qc-icon">⬆️</div><div class="qc-title">Hipertensión intraop. severa</div><div class="qc-sub">Labetalol · Esmolol · Nitroglicerina</div></div>
+    <div class="qc em" onclick="show('hemodin');setTimeout(()=>{const tabs=document.querySelectorAll('#section-hemodin .tab');tabs[3]&&tabs[3].click()},50)"><div class="qc-icon">💔</div><div class="qc-title">Shock diferencial</div><div class="qc-sub">Perfil shock · Algoritmo RUSH</div></div>
+    <div class="qc wa" onclick="show('pcr')"><div class="qc-icon">💗</div><div class="qc-title">Bradicardia severa intraop.</div><div class="qc-sub">Atropina · Adrenalina · PCR</div></div>
+    <div class="qc wa" onclick="show('pcr')"><div class="qc-icon">⚡</div><div class="qc-title">Taquicardia / Arritmia</div><div class="qc-sub">Amiodarona · Esmolol · Cardioversión</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;color:var(--warn);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px">⚠️ Vía Aérea / Ventilación</div>
+  <div class="qgrid">
+    <div class="qc wa" onclick="show('vad')"><div class="qc-icon">🔴</div><div class="qc-title">No puedo intubar</div><div class="qc-sub">Plan B → C → D CICO</div></div>
+    <div class="qc wa" onclick="show('vad');setTimeout(()=>document.querySelectorAll('#section-vad .tab')[2].click(),50)"><div class="qc-icon">🚫</div><div class="qc-title">CICO</div><div class="qc-sub">Cricotirotomía quirúrgica</div></div>
+    <div class="qc wa" onclick="show('extubacion');setTimeout(()=>document.querySelectorAll('#section-extubacion .tab')[1].click(),50)"><div class="qc-icon">😮‍💨</div><div class="qc-title">Laringoespasmo</div><div class="qc-sub">Propofol · SCC · CPAP</div></div>
+    <div class="qc wa" onclick="show('calc-vent')"><div class="qc-icon">🫁</div><div class="qc-title">Broncoespasmo severo</div><div class="qc-sub">Salbutamol · Ketamina · Adrenalina</div></div>
+    <div class="qc wa" onclick="show('calc-vent')"><div class="qc-icon">📊</div><div class="qc-title">Hipoxemia refractaria</div><div class="qc-sub">PEEP · FiO₂ · PaFi · ARDS</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;color:var(--danger);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px">🚨 Emergencias Específicas</div>
+  <div class="qgrid">
+    <div class="qc em" onclick="show('anafilaxia')"><div class="qc-icon">⚠️</div><div class="qc-title">Rash + hipotensión + broncoespasmo</div><div class="qc-sub">Anafilaxia — Adrenalina INMEDIATO</div></div>
+    <div class="qc em" onclick="show('hm')"><div class="qc-icon">🌡️</div><div class="qc-title">↑ ETCO₂ + fiebre + rigidez</div><div class="qc-sub">Hipertermia Maligna — Dantroleno</div></div>
+    <div class="qc em" onclick="show('last')"><div class="qc-icon">💉</div><div class="qc-title">Convulsiones post-bloqueo</div><div class="qc-sub">LAST — Intralípidos 20%</div></div>
+    <div class="qc em" onclick="show('pcr')"><div class="qc-icon">❤️</div><div class="qc-title">Paro cardíaco en mesa</div><div class="qc-sub">PCR — RCP + Adrenalina</div></div>
+    <div class="qc wa" onclick="show('pocus');setTimeout(()=>document.querySelectorAll('#section-pocus .tab')[0].click(),50)"><div class="qc-icon">🔬</div><div class="qc-title">Hipotensión + distensión yugular</div><div class="qc-sub">POCUS — Taponamiento · TEP</div></div>
+    <div class="qc wa" onclick="show('neuroaxial');setTimeout(()=>document.querySelectorAll('#section-neuroaxial .tab')[2].click(),50)"><div class="qc-icon">🔷</div><div class="qc-title">Apnea post-raquianestesia</div><div class="qc-sub">Bloqueo alto — Algoritmo</div></div>
+  </div>
+
+  <div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 6px">🧮 Cálculos Urgentes</div>
+  <div class="qgrid">
+    <div class="qc ca" onclick="show('calc-dosis')"><div class="qc-icon">💊</div><div class="qc-title">Dosis urgente por peso</div><div class="qc-sub">Cualquier fármaco → calculadora</div></div>
+    <div class="qc ca" onclick="show('last');setTimeout(()=>document.querySelectorAll('#section-last .tab')[1].click(),50)"><div class="qc-icon">🧪</div><div class="qc-title">Dosis Intralípidos 20%</div><div class="qc-sub">Por kg → bolo e infusión</div></div>
+    <div class="qc ca" onclick="show('calc-fluidos')"><div class="qc-icon">🩸</div><div class="qc-title">Transfusión urgente</div><div class="qc-sub">GR · PFC · Plaquetas · Crioprecipitado</div></div>
+    <div class="qc pe" onclick="show('ped-rcp')"><div class="qc-icon">👶</div><div class="qc-title">PCR pediátrico</div><div class="qc-sub">Adrenalina · Desfibrilación por peso</div></div>
+  </div>
+
+  <!-- LARINGOESPASMO y BRONCOESPASMO inline -->
+  <div class="card" style="margin-top:12px">
+    <div class="card-hdr"><span class="tag tw">EMERGENCIA VA</span><span class="card-hdr-title">Laringoespasmo — Manejo Inmediato</span></div>
+    <div class="card-body">
+      <div class="tabs"><div class="tab active" onclick="tab(this,'lrsp-alg')">Algoritmo</div><div class="tab" onclick="tab(this,'lrsp-farm')">Fármacos</div></div>
+      <div id="lrsp-alg">
+        <ul class="steps">
+          <li class="step"><div class="sn w">1</div><div class="st"><strong>Eliminar estímulo</strong> — retirar succión/laringoscopio. FiO₂ 1.0.</div></li>
+          <li class="step"><div class="sn w">2</div><div class="st"><strong>CPAP 20–40 cmH₂O</strong> — presión positiva continua con mascarilla. Maniobra de Larson (presión bilateral en muesca mastoídea posterior).</div></li>
+          <li class="step"><div class="sn w">3</div><div class="st">Si parcial: <span class="drug">Propofol</span> <span class="dose">0.25–0.5 mg/kg IV</span> — profundiza plano. Salbutamol nebulizado.</div></li>
+          <li class="step"><div class="sn d">4</div><div class="st">Si completo / SpO₂ cae: <span class="drug">Succinilcolina</span> <span class="dose">0.1–0.5 mg/kg IV</span> (dosis "defasciculante") o <span class="dose">4 mg/kg IM</span> si no hay vía.</div></li>
+          <li class="step"><div class="sn d">5</div><div class="st">Intubación después de relajación. Considerar edema pulmonar post-obstructivo.</div></li>
+        </ul>
+      </div>
+      <div id="lrsp-farm" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis</th><th>Vía</th><th>Indicación</th></tr></thead><tbody>
+          <tr><td class="dn">Propofol</td><td class="dd">0.25–0.5 mg/kg</td><td>IV</td><td class="dnote">Espasmo parcial · ↑ plano</td></tr>
+          <tr><td class="dn">Succinilcolina</td><td class="dd">0.1–0.5 mg/kg (IV) / 4 mg/kg (IM)</td><td>IV/IM</td><td class="dnote">Espasmo completo / sin vía</td></tr>
+          <tr><td class="dn">Salbutamol neb.</td><td class="dd">2.5–5 mg</td><td>Neb.</td><td class="dnote">Componente broncoespástico</td></tr>
+          <tr><td class="dn">Adrenalina neb.</td><td class="dd">0.5–1 mg (1 mL al 0.1%)</td><td>Neb.</td><td class="dnote">Edema subglótico/croup</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px">
+    <div class="card-hdr"><span class="tag tw">EMERGENCIA VA</span><span class="card-hdr-title">Broncoespasmo Intraoperatorio Severo</span></div>
+    <div class="card-body">
+      <ul class="steps">
+        <li class="step"><div class="sn w">1</div><div class="st"><strong>Suspender estímulo</strong> · FiO₂ 1.0 · Verificar posición ETT · Descartar intubación selectiva</div></li>
+        <li class="step"><div class="sn w">2</div><div class="st"><strong>↑ Profundidad anestésica:</strong> <span class="drug">Propofol</span> bolo o <span class="drug">Ketamina</span> <span class="dose">1 mg/kg IV</span> (broncodilatador)</div></li>
+        <li class="step"><div class="sn w">3</div><div class="st"><span class="drug">Salbutamol</span> — 2–8 puff MDI en ETT o <span class="dose">2.5 mg neb.</span></div></li>
+        <li class="step"><div class="sn d">4</div><div class="st">Refractario: <span class="drug">Adrenalina</span> <span class="dose">0.1–0.3 mcg/kg/min IV</span> o <span class="dose">0.01 mg/kg SC</span></div></li>
+        <li class="step"><div class="sn d">5</div><div class="st"><span class="drug">Magnesio sulfato</span> <span class="dose">40 mg/kg IV en 20 min</span> — broncodilatador NMDA</div></li>
+        <li class="step"><div class="sn b">6</div><div class="st"><span class="drug">Hidrocortisona</span> <span class="dose">200 mg IV</span> · Ipratropio MDI 4–8 puff</div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- PERFILES EFECTOS ADVERSOS -->
+<div id="section-perfiles-ea" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag ti">FARMACOLOGÍA</span><span class="card-hdr-title">Perfiles Completos de Efectos Adversos</span><span class="tag ti">FK · FD · Interacciones</span></div>
+    <div class="card-body">
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'ea-hip')">Hipnóticos IV</div>
+        <div class="tab" onclick="tab(this,'ea-opio')">Opioides</div>
+        <div class="tab" onclick="tab(this,'ea-rnm')">RNM · Reversión</div>
+        <div class="tab" onclick="tab(this,'ea-hal')">Halogenados</div>
+        <div class="tab" onclick="tab(this,'ea-al')">Anestésicos Locales</div>
+        <div class="tab" onclick="tab(this,'ea-vasos')">Vasoactivos</div>
+      </div>
+
+      <!-- HIPNOTICOS -->
+      <div id="ea-hip">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>CV</th><th>Resp.</th><th>SNC</th><th>Otros</th><th>CI Relativas</th></tr></thead><tbody>
+          <tr>
+            <td class="dn">Propofol</td>
+            <td>↓↓ RVS · ↓ FC · ↓↓ PAM (25–40%) · ↓ GC</td>
+            <td>Apnea frecuente bolo · ↓ VT</td>
+            <td>↓ PIC · Anti-epiléptico · PONV↓ · Delirio↓</td>
+            <td>Síndrome infusión (&gt;4mg/kg/h·48h): acidosis + rabdomiólisis + IC. Dolor inyección.</td>
+            <td class="dnote">Alergia huevo/soja (relativa). Hipovolemia. Hipertensión pulmonar grave.</td>
+          </tr>
+          <tr>
+            <td class="dn">Ketamina</td>
+            <td>↑↑ FC · ↑ PAM · ↑ RVS (simpaticomiméti­co). ↓ CV directo (enmascarado)</td>
+            <td>Preserva tono VA · Broncodi­latador · Apnea rara (dosis altas)</td>
+            <td>↑ PIC · Alucinaciones / Emergence delirium. Analgesia disociativa.</td>
+            <td>Sialorrea (agregar glicopirrolato). Sueños vividos. Nistagmo.</td>
+            <td class="dnote">HTA no controlada. Isquemia miocárdica. ↑ PIC sin control. Glaucoma.</td>
+          </tr>
+          <tr>
+            <td class="dn">Etomidato</td>
+            <td>Mínimo efecto. Ideal inestabilidad HD.</td>
+            <td>Apnea corta bolo. ↓ FR leve.</td>
+            <td>Mioclonías (↑ con premedicación con BDZ). ↓ PIC.</td>
+            <td><strong>Supresión adrenal</strong> (dosis única: 6–12h). Náusea frecuente.</td>
+            <td class="dnote">Insuficiencia adrenal. Sepsis (controversial). Porfiria.</td>
+          </tr>
+          <tr>
+            <td class="dn">Midazolam</td>
+            <td>↓ PAM leve. Vasodilatador.</td>
+            <td>↓ FR · Apnea si rápido o combinado con opioides.</td>
+            <td>Amnesia anterógrada. Ansiolítico. Anticonvulsivante. Paradójico en ancianos.</td>
+            <td>Acumulación en infusión prolongada. Metabolito activo (1-OH-midazolam) acumula en IR.</td>
+            <td class="dnote">Glaucoma ángulo cerrado. IR/IH severa (ajustar). Embarazo 1er trimestre.</td>
+          </tr>
+          <tr>
+            <td class="dn">Dexmedetomidina</td>
+            <td>Bradicardia (⚠️ inicial). Bifásico: bolo → HTA transitoria → hipotensión. ↓ FC sostenida.</td>
+            <td>Sin depresión respiratoria significativa a dosis habituales.</td>
+            <td>Sedación cooperativa. Ansiolítico. ↓ requerimiento opioides 30–50%.</td>
+            <td>Boca seca. ↓ temperatura (vasoconst.). Bradicardia refractaria (atropina + isoproterenol).</td>
+            <td class="dnote">Bloqueo AV 2°-3°. Bradicardia severa previa. Hipovolemia. Marcapasos ausente en alt. conduc.</td>
+          </tr>
+        </tbody></table>
+      </div>
+
+      <!-- OPIOIDES -->
+      <div id="ea-opio" class="hidden">
+        <div class="alert w" style="margin-bottom:10px"><span class="alert-icon">⚠️</span><div><strong>Clase-efecto opioides:</strong> Depresión resp · Rigidez torácica (altas dosis IV rápidas) · Náusea/vómito · Prurito · Estreñimiento · Retención urinaria · Hipotermia · Miosis · Retardo vaciamiento gástrico</div></div>
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Efectos diferenciales</th><th>Especial Atención</th><th>Reversión</th></tr></thead><tbody>
+          <tr>
+            <td class="dn">Morfina</td>
+            <td>Libera histamina IV (↓ PAM, urticaria). M6G acumulable en IR → depresión resp prolongada.</td>
+            <td>Evitar bolo IV rápido. Ajustar en IR.</td>
+            <td class="dnote">Naloxona 0.1–0.4 mg IV c/2–3 min. Duración naloxona &lt; morfina → repetir.</td>
+          </tr>
+          <tr>
+            <td class="dn">Fentanilo</td>
+            <td>Alta lipofilia → secuestro pulmonar. Acumulación en infusión. Rigidez torácica 5 mcg/kg+ en bolo rápido.</td>
+            <td>Vida media contexto-dependiente: 1h→4h a 4h→8h infusión prolongada.</td>
+            <td class="dnote">Naloxona 0.1 mg IV. Puede requerir infusión naloxona 2–4 mcg/kg/h.</td>
+          </tr>
+          <tr>
+            <td class="dn">Remifentanilo</td>
+            <td><strong>Hiperalgesia post-TIVA</strong> (sensitización NMDA). Rigidez torácica severa a dosis altas. Bradicardia.</td>
+            <td>Siempre agregar analgesia puente 30 min antes del cierre (AINE+Paracetamol). No para analgesia post-op.</td>
+            <td class="dnote">No necesario (t½ 3–5 min). Antagonista NMDA (Mg/Ketamina) para hiperalgesia.</td>
+          </tr>
+          <tr>
+            <td class="dn">Tramadol</td>
+            <td>NVPO MUY frecuentes (25–30%). Síndrome serotoninérgico (ISRS+tramadol). Convulsiones en susceptibles. CYP2D6 variable.</td>
+            <td>CI absoluta con IMAO. Evitar en epilepsia. Infundir lento (30 min).</td>
+            <td class="dnote">Naloxona parcialmente efectiva (componente noradrenérgico). Dosis habitual.</td>
+          </tr>
+          <tr>
+            <td class="dn">Sufentanilo</td>
+            <td>Mayor unión proteínas → menor fluctuación. Menos acumulación que fentanilo en infusión. Bradicardia.</td>
+            <td>Potencia ×7–10 vs. fentanilo. Precaución en conversión de dosis.</td>
+            <td class="dnote">Naloxona igual que fentanilo.</td>
+          </tr>
+        </tbody></table>
+        <div style="margin-top:10px;padding:10px;background:var(--bg);border:1px solid rgba(255,61,61,.2);border-radius:4px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-bottom:6px">NALOXONA — PROTOCOLO REVERSIÓN</div>
+          <div class="g2">
+            <div><div class="small" style="margin-bottom:3px"><strong>Depresión resp parcial:</strong> <span class="drug">0.04–0.1 mg IV</span> c/2–3 min (titular)</div>
+            <div class="small" style="margin-bottom:3px"><strong>Depresión severa/PCR:</strong> <span class="drug">0.4–2 mg IV</span> · puede repetirse</div></div>
+            <div><div class="small" style="margin-bottom:3px"><strong>Duración naloxona:</strong> 30–90 min (< opioides de larga duración)</div>
+            <div class="small"><strong>Infusión:</strong> 2/3 dosis reversora/hora IV · Vigilar 4–6h post-opioides de acción larga</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RNM -->
+      <div id="ea-rnm" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Efectos Adversos</th><th>Monitoreo</th><th>Reversor</th></tr></thead><tbody>
+          <tr>
+            <td class="dn">Succinilcolina</td>
+            <td>Fasciculaciones · ↑K⁺ 0.5 mEq/L · Bradicardia/asistolia (2ª dosis pediátrica) · Mialgia post-op · Presión ocular transitoria · Desencadena HM</td>
+            <td>CI: hiperpotasemia, miopatías, quemados&gt;72h, denervación, aplastamiento</td>
+            <td class="dnote">No reversor. Pseudocolinesterasa. Prolongado en deficiencia de pseudocolinesterasa (dibucaína&lt;70).</td>
+          </tr>
+          <tr>
+            <td class="dn">Rocuronio</td>
+            <td>Anafilaxia (más frecuente que otros BNMND). Prolongado en IH, hipotermia, Mg²⁺, aminoglucósidos.</td>
+            <td>TOF. Evitar dosis extra sin TOF previo.</td>
+            <td class="dnote"><strong>Sugammadex:</strong> 2 mg/kg (T2) · 4 mg/kg (T1-T2) · 16 mg/kg (emergencia/ISR). Encapsula. No antagonismo farmacológico.</td>
+          </tr>
+          <tr>
+            <td class="dn">Atracurio</td>
+            <td>Liberación histamina (rápido/alta dosis) · Hipotensión · Laudanosina (metabolito convulsivo — rara vez clínicamente relevante)</td>
+            <td>Ideal IR/IH: eliminación Hofmann + esterasas no dependiente de órganos.</td>
+            <td class="dnote">Neostigmina 0.05 mg/kg (máx 5 mg) + Atropina 0.02 mg/kg. Solo con TOF &gt; T2.</td>
+          </tr>
+          <tr>
+            <td class="dn">Vecuronio</td>
+            <td>Sin efectos CV significativos. Prolongado en IH (excreción biliar). Metabolito 3-OH activo acumula en IR.</td>
+            <td>IH/IR: reducir dosis o usar atracurio/cisatracurio.</td>
+            <td class="dnote">Sugammadex o Neostigmina.</td>
+          </tr>
+          <tr>
+            <td class="dn">Cisatracurio</td>
+            <td>Sin liberación histamina. Sin efectos CV. Ideal UCI e IH/IR. Hofmann puro.</td>
+            <td>No monitoreado por órgano-dependencia. TOF igual.</td>
+            <td class="dnote">Neostigmina o Sugammadex.</td>
+          </tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">BLOQUEO RESIDUAL — PREVENCIÓN</div>
+        <div class="alert w"><span class="alert-icon">⚠️</span><div><strong>TOF ratio &lt;0.9</strong> = bloqueo residual clínicamente relevante. Sugammadex preferido sobre neostigmina (no limitado por techo máximo). No extubación con TOF &lt;0.9. Factores que potencian bloqueo: Mg²⁺, aminoglucósidos, hipotermia, acidosis, halogenados.</div></div>
+      </div>
+
+      <!-- HALOGENADOS -->
+      <div id="ea-hal" class="hidden">
+        <table class="tbl"><thead><tr><th>Efecto</th><th>Desflurano</th><th>Sevoflurano</th><th>Isoflurano</th></tr></thead><tbody>
+          <tr><td><strong>CV</strong></td><td>↑ FC (cambios bruscos de conc.) · ↓ PAM dosis-dep.</td><td>↓ PAM dosis-dep. · Mínimo efecto FC</td><td>Vasodilatación · ↓ PAM · Taquicardia reflexa</td></tr>
+          <tr><td><strong>Resp.</strong></td><td>Irritante VA (↑ secreciones, tos, laringoespasmo)</td><td>No irritante. Ideal inducción inhalatoria</td><td>Ligero irritante. Broncodilatador leve.</td></tr>
+          <tr><td><strong>SNC</strong></td><td>↑ FSC a &gt;1.5 CAM · ↓ CMRO₂</td><td>↑ FSC moderado · ↓ CMRO₂. Epileptogénico a &gt;2 CAM (raro)</td><td>↑ FSC · ↓ CMRO₂ · Isoflurano: protección isquémica</td></tr>
+          <tr><td><strong>Hepático</strong></td><td>0.02% metabolismo. Mínimo riesgo hepático.</td><td>2–3% metabolismo. Compuesto A (nefrotóxico en animales — flujo &gt;2 L/min seguro)</td><td>0.2%. Hepatitis halotano cruzada (rara)</td></tr>
+          <tr><td><strong>Espac.</strong></td><td>↑ PM — usar calentador específico</td><td>No aplica</td><td>No aplica</td></tr>
+          <tr><td><strong>HM</strong></td><td>⚠️ Desencadenante</td><td>⚠️ Desencadenante</td><td>⚠️ Desencadenante</td></tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div><strong>Potenciación RNM:</strong> Todos los halogenados potencian bloqueantes NM no despolarizantes (↓ dosis de mantenimiento 20–30%). Mayor efecto: desflurano &gt; sevoflurano &gt; isoflurano.</div></div>
+      </div>
+
+      <!-- ANESTÉSICOS LOCALES -->
+      <div id="ea-al" class="hidden">
+        <table class="tbl"><thead><tr><th>Agente</th><th>Neurotoxicidad</th><th>Cardiotoxicidad</th><th>Otros</th></tr></thead><tbody>
+          <tr>
+            <td class="dn">Bupivacaína</td>
+            <td>Parestesias, convulsiones (LAST). Mayor que ropivacaína.</td>
+            <td><strong>Alta cardiotoxicidad.</strong> FV refractaria. Bloqueo canales Na⁺ intenso. Difícil reversión.</td>
+            <td class="dnote">NUNCA IV directa. Máx 2 mg/kg. Levobupivacaína &gt; seguridad.</td>
+          </tr>
+          <tr>
+            <td class="dn">Ropivacaína</td>
+            <td>Similar a bupivacaína pero con mayor margen de seguridad.</td>
+            <td>Menor cardiotoxicidad que bupivacaína. Revierte más fácil.</td>
+            <td class="dnote">Preferible en bloqueos periféricos de alto volumen. Máx 3 mg/kg.</td>
+          </tr>
+          <tr>
+            <td class="dn">Lidocaína</td>
+            <td>Síndrome cauda equina (altas conc. intratecal). Toxicidad SNC a niveles plasmáticos altos.</td>
+            <td>Menor que bupivacaína. También antiarrítmico (clase IB).</td>
+            <td class="dnote">Intratecal: hiperbarica 2%. Sistémica: 1.5 mg/kg bolo → 1.5 mg/kg/h analgesia. ECG obligatorio.</td>
+          </tr>
+          <tr>
+            <td class="dn">Prilocaína</td>
+            <td>LAST menor frecuencia (rápido metabolismo).</td>
+            <td>Baja cardiotoxicidad.</td>
+            <td class="dnote"><strong>Metahemoglobinemia</strong> a dosis altas (&gt;600 mg). Tratar: azul de metileno 1–2 mg/kg IV.</td>
+          </tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div>Vasoconstrictor (adrenalina 1:200.000 = 5 mcg/mL) aumenta duración y ↓ absorción sistémica. CI: dedos, pene, extremidades con circulación comprometida, cocaína previa reciente.</div></div>
+      </div>
+
+      <!-- VASOACTIVOS -->
+      <div id="ea-vasos" class="hidden">
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Receptor</th><th>Efecto principal</th><th>Efectos adversos</th><th>Precaución</th></tr></thead><tbody>
+          <tr><td class="dn">Noradrenalina</td><td>α1&gt;&gt;β1</td><td>↑↑ RVS · ↑ PAM · ↓ FC refleja</td><td>Isquemia periférica · Necrosis extravascular · ↓ GC si ↑↑ poscarga</td><td class="dnote">CVC preferible. Extravasación: fentolamina local.</td></tr>
+          <tr><td class="dn">Adrenalina</td><td>α1β1β2</td><td>↑ GC · ↑ FC · ↑ RVS (dosis-dep)</td><td>Arritmias (FV riesgo) · Hipopotasemia · Hiperglucemia · Isquemia</td><td class="dnote">Monitoreo continuo. No con MAOIs.</td></tr>
+          <tr><td class="dn">Fenilefrina</td><td>α1 puro</td><td>↑ RVS · ↑ PAM · ↓↓ FC refleja · ↓ GC</td><td>Bradicardia refleja. ↓ GC en IC. Vasoconstricción excesiva.</td><td class="dnote">Cuidado en IC, obstrucción de tracto. Ideal en estenosis aórtica.</td></tr>
+          <tr><td class="dn">Dopamina</td><td>DA · β · α (dosis-dep)</td><td>Dopa: ↑ diuresis · β: ↑ GC · α: ↑ RVS</td><td>Arritmias (más frecuente que noradrenalina). Necrosis extravascular. Taquicardia.</td><td class="dnote">Taquiarritmias: usar otra catecolamina.</td></tr>
+          <tr><td class="dn">Dobutamina</td><td>β1&gt;β2</td><td>↑↑ GC · ↑ FC · ↓ RVS leve</td><td>Taquicardia · Hipotensión (β2) · Arritmias · ↑ CMVO₂</td><td class="dnote">No en obstrucción dinámica (HCM). No en hipovolemia sin corregir.</td></tr>
+          <tr><td class="dn">Vasopresina</td><td>V1/V2</td><td>↑ RVS · ↑ PAM (no depende de catecolaminas)</td><td>Isquemia digital/mesentérica/coronaria a dosis altas. ↓ GC.</td><td class="dnote">Dosis fija (0.03–0.04 UI/min). No titular por arriba de esto en shock.</td></tr>
+          <tr><td class="dn">Esmolol</td><td>β1 selectivo</td><td>↓ FC · ↓ PAM moderado · ↓ GC</td><td>Bradicardia · Hipotensión · Broncoespasmo (selectivo pero posible)</td><td class="dnote">CI: bloqueo AV, IC descompensada, asma severa. T½ 9 min (esterasas).</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- CHAT -->
+<aside class="chat">
+  <div class="chat-hdr">
+    <span>🤖</span>
+    <span class="chat-hdr-title">Asistente IA Clínico</span>
+    <span class="tag tok" style="font-size:8px">claude-sonnet-4</span>
+  </div>
+  <div class="chat-msgs" id="chatMsgs">
+    <div class="msg assistant"><strong>Listo.</strong><br><br>Consultame situaciones, dosis o algoritmos:<br>• <em style="color:var(--text2)">"Niño 18kg, ISR, qué doy"</em><br>• <em style="color:var(--text2)">"Dantroleno para 65kg"</em><br>• <em style="color:var(--text2)">"VCI colapsable + hipotensión"</em><br>• <em style="color:var(--text2)">"TCI propofol Schnider 55kg"</em><div class="msg-time">Sistema activo</div></div>
+  </div>
+  <div class="chat-inp-area">
+    <textarea class="chat-inp" id="chatInp" placeholder="Situación clínica..." rows="2" onkeydown="handleKey(event)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMsg()">↑</button>
+  </div>
+</aside>
+</div>
+
+<script>
+// ===== NAV =====
+let activeSection = 'home';
+function show(id) {
+  document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById('section-' + id);
+  if(el) { el.classList.remove('hidden'); el.classList.add('fade'); }
+  document.querySelectorAll('.sb').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + id);
+  if(btn) btn.classList.add('active');
+  activeSection = id;
+}
+
+function tab(el, targetId) {
+  const cont = el.closest('.card-body') || el.parentElement.parentElement;
+  cont.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const target = document.getElementById(targetId);
+  if(!target) return;
+  const parent = target.parentElement;
+  Array.from(parent.children).forEach(c => { if(c.id) c.classList.add('hidden'); });
+  target.classList.remove('hidden');
+}
+
+// ===== SEARCH SYSTEM =====
+const SEARCH_INDEX = [
+  // EMERGENCIAS
+  {k:['pcr','paro','rcp','fibril','asistolia','aesp','desfibril','resucit','codigo azul'],s:'pcr',cat:'Emergencia',label:'PCR Intraoperatoria'},
+  {k:['anafilax','alergia','hipotensión alérgica','rash','urticaria','broncoespasmo alérgico','triptasa'],s:'anafilaxia',cat:'Emergencia',label:'Anafilaxia'},
+  {k:['hipertermia','maligna','dantroleno','etco2 alto','rigidez muscular','mhaus','crisis hm'],s:'hm',cat:'Emergencia',label:'Hipertermia Maligna'},
+  {k:['last','intralipid','toxicidad local','bupivacaína','convulsi','bloqueo regional'],s:'last',cat:'Emergencia',label:'LAST — Toxicidad AL'},
+  {k:['laringoespasmo','espasmo laríng','stridor','cpap'],s:'crisis',cat:'Emergencia',label:'Laringoespasmo'},
+  {k:['broncoespasmo','sibilancias','presión alta','salbutamol','ketamina bronco'],s:'crisis',cat:'Emergencia',label:'Broncoespasmo Intraop.'},
+  {k:['crisis','síntoma','situación','hipotensión','hipertensión','bradicardia','taquicardia'],s:'crisis',cat:'Emergencia',label:'Crisis por Síntoma'},
+
+  // VÍA AÉREA
+  {k:['vad','vía aérea difícil','difícil','mallampati','cico','no puedo intubar','plan b','plan c','plan d','videolaringo','fibroscopio'],s:'vad',cat:'Vía Aérea',label:'Vía Aérea Difícil'},
+  {k:['isr','secuencia rápida','intubación rápida','succinilcolina','rocuronio isr','crash'],s:'rsi',cat:'Vía Aérea',label:'ISR — Secuencia Rápida'},
+  {k:['extubar','extubación','laringoespasmo extub','aec','guía de intercambio'],s:'extubacion',cat:'Vía Aérea',label:'Extubación'},
+
+  // CALCULADORAS
+  {k:['dosis','propofol','ketamina','etomidato','fentanilo','morfina','midazolam','sugammadex','neostigmina','atracurio','vecuronio','rocuronio','remifentanilo','tramadol','ondansetron','dexametasona'],s:'calc-dosis',cat:'Calculadora',label:'Dosis Fármacos por Peso'},
+  {k:['vasopresor','noradrenalina','adrenalina','fenilefrina','dopamina','dobutamina','vasopresina','nitroglicerina','esmolol','labetalol','ml/h','infusión'],s:'calc-vasopresores',cat:'Calculadora',label:'Vasopresores & Vasoactivos'},
+  {k:['transfusión','fluido','hemoderivado','glóbulos','plaquetas','pfc','cristaloide','coloide','sangre','hb','hemoglobina'],s:'calc-fluidos',cat:'Calculadora',label:'Fluidos & Transfusión'},
+  {k:['bicarbonato','sodio','potasio','calcio','medio interno','acidosis','alcalosis','hiponatremia','hiperpotasemia','hipocalcemia'],s:'calc-medio',cat:'Calculadora',label:'Medio Interno'},
+  {k:['tiva','tci','propofol tci','marsh','schnider','ce','concentración efecto','remifentanilo','minto','sufentanilo'],s:'calc-tiva',cat:'Calculadora',label:'TIVA / TCI Avanzado'},
+  {k:['ventilación','vt','volumen tidal','peep','pafi','pao2','fio2','ards','sdra','parámetros vent'],s:'calc-vent',cat:'Calculadora',label:'Ventilación & Oximetría'},
+
+  // MONITOREO
+  {k:['pocus','echo','ecografía','fate','rush','vci','vena cava','ultrasonido','transductor'],s:'pocus',cat:'POCUS',label:'POCUS / Ecocardiografía'},
+  {k:['hemodinámico','swan','catéter ap','picco','lidco','gasto cardíaco','pvr','rvs','svO2','picco','gevdi'],s:'hemodin',cat:'Monitoreo',label:'Monitoreo Hemodinámico'},
+
+  // PEDIATRÍA
+  {k:['pediatr','niño','lactante','neonato','pediátrico','infantil'],s:'ped-intro',cat:'Pediatría',label:'Referencia Pediátrica'},
+  {k:['dosis pediátrica','propofol niño','fentanilo niño','atropina niño'],s:'ped-dosis',cat:'Pediatría',label:'Dosis Pediátricas'},
+  {k:['tubo et','intubación niño','via aérea niño','lma pediátrica'],s:'ped-via',cat:'Pediatría',label:'Vía Aérea Pediátrica'},
+  {k:['rcp pediátrico','paro niño','desfibrilación niño','adrenalina niño'],s:'ped-rcp',cat:'Pediatría',label:'RCP Pediátrico'},
+  {k:['ventilación niño','ventilación pediátrica','fr niño'],s:'ped-vent',cat:'Pediatría',label:'Ventilación Pediátrica'},
+
+  // PROTOCOLOS
+  {k:['sedación','analgesia','analgesia multimodal','escala dolor','analgesia post','ketorolac'],s:'sedacion',cat:'Protocolo',label:'Sedación & Analgesia'},
+  {k:['checklist','inducción','pre-inducción','verificación','who','wfsa','lista verificación'],s:'checklist',cat:'Protocolo',label:'Check Pre-Inducción'},
+  {k:['posicion','prono','supino','litotomía','trendelenburg','lateral','beach chair'],s:'posicion',cat:'Protocolo',label:'Posicionamiento Quirúrgico'},
+  {k:['neuroaxial','raquianestesia','espinal','epidural','bloqueo alto','pdph','cefalea post-punci'],s:'neuroaxial',cat:'Protocolo',label:'Anestesia Neuroaxial'},
+  {k:['farmacología','halogenado','cam','cam-awake','sevoflurano','desflurano','isoflurano'],s:'farmaco-av',cat:'Farmacología',label:'Farmacología Avanzada'},
+  {k:['efectos adversos','perfiles','complicaciones fármacos','hipnoticos efectos','opioides efectos'],s:'perfiles-ea',cat:'Farmacología',label:'Perfiles Efectos Adversos'},
+];
+
+function liveSearch(q) {
+  const drop = document.getElementById('searchDrop');
+  if(!q || q.length < 2) { drop.style.display='none'; return; }
+  const ql = q.toLowerCase();
+  const hits = [];
+  for(const item of SEARCH_INDEX) {
+    if(item.k.some(k => k.includes(ql) || ql.includes(k.split(' ')[0]))) {
+      if(!hits.find(h=>h.s===item.s)) hits.push(item);
+    }
+  }
+  if(!hits.length) { drop.style.display='none'; return; }
+  drop.innerHTML = hits.slice(0,8).map((h,i) =>
+    `<div class="sd-item" onclick="show('${h.s}');document.getElementById('searchInput').value='';document.getElementById('searchDrop').style.display='none'">
+      <span class="sd-cat">${h.cat}</span>
+      <span class="sd-label">${h.label}</span>
+    </div>`
+  ).join('');
+  drop.style.display='block';
+}
+
+function searchKey(e) {
+  const drop = document.getElementById('searchDrop');
+  if(e.key === 'Escape') { drop.style.display='none'; return; }
+  if(e.key !== 'Enter') return;
+  const q = e.target.value.toLowerCase().trim();
+  const ql = q;
+  for(const item of SEARCH_INDEX) {
+    if(item.k.some(k => ql.includes(k.split(' ')[0]) || k.includes(ql))) {
+      show(item.s);
+      e.target.value='';
+      drop.style.display='none';
+      return;
+    }
+  }
+}
+
+document.addEventListener('click', function(e) {
+  if(!e.target.closest('.search-wrap')) document.getElementById('searchDrop').style.display='none';
+});
+
+
+// ===== MODE TOGGLE =====
+let isPed = false;
+function toggleMode() {
+  isPed = !isPed;
+  const btn = document.getElementById('modeBtn');
+  btn.textContent = isPed ? 'PEDIÁTRICO' : 'ADULTO';
+  btn.className = isPed ? 'mode-badge ped' : 'mode-badge';
+}
+
+// ===== HELPERS =====
+function ri(label, value, cls='') { return `<div class="ri"><span class="rl">${label}</span><span class="rv ${cls}">${value}</span></div>`; }
+function showRes(id, html) { const el = document.getElementById(id); el.style.display='block'; el.innerHTML=html; }
+
+// ===== CALCULADORAS =====
+function calcLAST() {
+  const p = parseFloat(document.getElementById('last-peso').value);
+  if(!p) return;
+  const b=( p*1.5).toFixed(0), inf=(p*0.25).toFixed(1), max=(p*10).toFixed(0);
+  showRes('last-res', ri('Bolo IL-20% (1.5 mL/kg en 1 min)',`${b} mL`,'d') + ri('Infusión (0.25 mL/kg/min)',`${inf} mL/min = ${(inf*60).toFixed(0)} mL/h`,'w') + ri('2° bolo si no respuesta',`${b} mL`) + ri('Dosis máx total (10 mL/kg)',`${max} mL`,'w'));
+}
+
+function calcRSI() {
+  const p = parseFloat(document.getElementById('rsi-peso').value);
+  if(!p) return;
+  showRes('rsi-res', ri('Propofol (1.5–2.5 mg/kg)',`${(p*1.5).toFixed(0)}–${(p*2.5).toFixed(0)} mg`,'w') + ri('Ketamina (1.5–2 mg/kg)',`${(p*1.5).toFixed(0)}–${(p*2).toFixed(0)} mg`) + ri('Etomidato (0.3 mg/kg)',`${(p*0.3).toFixed(1)} mg`) + ri('Succinilcolina (1.2 mg/kg)',`${(p*1.2).toFixed(0)} mg`,'ok') + ri('Rocuronio ISR (1.2 mg/kg)',`${(p*1.2).toFixed(0)} mg`,'ok') + ri('Sugammadex emergencia (16 mg/kg)',`${(p*16).toFixed(0)} mg`,'w'));
+}
+
+const DRUGS = {
+  'propofol-ind':{n:'Propofol inducción',min:1.5,max:2.5,u:'mg/kg',note:'↓ dosis en ancianos/hipovolemia/ASA III-IV'},
+  'propofol-mant':{n:'Propofol mantenimiento',min:100,max:200,u:'mcg/kg/min',note:'Ajustar BIS 40–60'},
+  'ketamina-ind':{n:'Ketamina anestesia',min:1.5,max:2,u:'mg/kg',note:'Estabilidad HD. Bueno en trauma.'},
+  'ketamina-dis':{n:'Ketamina disociativa',min:0.5,max:1,u:'mg/kg',note:'Sedación/procedimientos'},
+  'etomidato':{n:'Etomidato',dosis:0.3,u:'mg/kg',note:'Estabilidad HD. Supresión adrenal (1 dosis = mínima).'},
+  'tiopental':{n:'Tiopental',min:3,max:5,u:'mg/kg',note:'↓ PIC. Disponibilidad variable.'},
+  'succinilcolina':{n:'Succinilcolina',min:1,max:1.5,u:'mg/kg',note:'CI: hiperpotasemia, miopatías, quemados crónicos, denervación crónica'},
+  'rocuronio-int':{n:'Rocuronio (intubación)',dosis:0.6,u:'mg/kg',note:'Duración 30–60 min'},
+  'rocuronio-isr':{n:'Rocuronio ISR',dosis:1.2,u:'mg/kg',note:'Reversión: Sugammadex 16 mg/kg'},
+  'rocuronio-mant':{n:'Rocuronio (mantenimiento)',min:0.1,max:0.15,u:'mg/kg',note:'c/20–30 min'},
+  'vecuronio':{n:'Vecuronio',dosis:0.1,u:'mg/kg',note:'Inicio 3–5 min. Duración 25–40 min'},
+  'atracurio':{n:'Atracurio',dosis:0.5,u:'mg/kg',note:'Ideal IR/IH. Eliminación Hofmann.'},
+  'cisatracurio':{n:'Cisatracurio',dosis:0.15,u:'mg/kg',note:'Hofmann. Sin laudanosina relevante.'},
+  'sugammadex-prof':{n:'Sugammadex (profundo T0-T1)',dosis:16,u:'mg/kg',note:'Reversión ISR rocuronio en ~3 min'},
+  'sugammadex-mod':{n:'Sugammadex (moderado T2)',dosis:4,u:'mg/kg',note:''},
+  'sugammadex-leve':{n:'Sugammadex (leve ≥T3)',dosis:2,u:'mg/kg',note:'TOF ratio &gt;0.9 en 2 min'},
+  'sugammadex-emerg':{n:'Sugammadex (emergencia)',dosis:16,u:'mg/kg',note:'CICO / reversión inmediata'},
+  'neostigmina':{n:'Neostigmina',dosis:0.05,u:'mg/kg (máx 5 mg)',note:'SIEMPRE con atropina 0.02 mg/kg'},
+  'fentanilo':{n:'Fentanilo IV',min:1,max:3,u:'mcg/kg',note:'Bolo perioperatorio. Inicio 1–3 min.'},
+  'morfina':{n:'Morfina IV',min:0.05,max:0.1,u:'mg/kg',note:'Titular en bolos de 2 mg'},
+  'remifentanilo':{n:'Remifentanilo infusión',min:0.1,max:0.5,u:'mcg/kg/min',note:'Preparar 50 mcg/mL'},
+  'tramadol':{n:'Tramadol IV',dosis:100,u:'mg (dosis fija)',note:'CI: ISRS, IMAO, epilepsia. Infundir lento.'},
+  'hidromorfona':{n:'Hidromorfona IV',min:0.01,max:0.02,u:'mg/kg',note:'~7× más potente que morfina'},
+  'midazolam':{n:'Midazolam',min:0.02,max:0.05,u:'mg/kg',note:'Reversible con flumazenil 0.2 mg'},
+  'diazepam':{n:'Diazepam IV',min:0.1,max:0.2,u:'mg/kg',note:'Lento IV. Max 10 mg/bolo.'},
+  'atropina':{n:'Atropina',min:0.01,max:0.02,u:'mg/kg (min 0.1 mg)',note:'Max 3 mg total'},
+  'glicopirrolato':{n:'Glicopirrolato',dosis:0.005,u:'mg/kg',note:'No cruza BHE. Menos taquicardia.'},
+  'dexametasona':{n:'Dexametasona',min:0.1,max:0.2,u:'mg/kg (4–8 mg adulto)',note:'PONV + analgesia adyuvante'},
+  'ondansetron':{n:'Ondansetron',dosis:0.1,u:'mg/kg (max 4 mg)',note:'Antiemético 5-HT3. Repetir c/8h'},
+  'ketorolac':{n:'Ketorolac IV',dosis:0.5,u:'mg/kg (max 30 mg)',note:'CI: IR, HDA, plaquetopenia. Max 5 días.'},
+  'paracetamol':{n:'Paracetamol IV',dosis:15,u:'mg/kg (max 1g)',note:'Base multimodal. Infundir 15 min.'},
+  'lidocaina-iv':{n:'Lidocaína IV sistémica',min:1,max:1.5,u:'mg/kg bolo → 1–2 mg/kg/h',note:'ECG monitorizado. ↓ opioides, íleo.'}
+};
+
+function calcDosis() {
+  const p = parseFloat(document.getElementById('dosis-peso').value);
+  const drug = document.getElementById('dosis-drug').value;
+  const d = DRUGS[drug]; if(!p||!d) return;
+  let html='';
+  if(d.dosis) {
+    const u = d.u.includes('fija') ? 'mg' : d.u.split('/')[0];
+    const tot = d.u.includes('fija') ? d.dosis : (p*d.dosis).toFixed(1);
+    html = ri(`${d.n} (${d.dosis} ${d.u})`, `${tot} ${u}`,'w');
+  } else {
+    const u = d.u.split('/')[0];
+    html = ri(`${d.n} (${d.min}–${d.max} ${d.u})`, `${(p*d.min).toFixed(1)}–${(p*d.max).toFixed(1)} ${u}`,'w');
+  }
+  html += `<div style="color:var(--text3);font-size:11px;font-family:var(--mono);margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">ℹ️ ${d.note}</div>`;
+  showRes('dosis-res', html);
+}
+
+const VASOS = {
+  'noradrenalina':{n:'Noradrenalina',range:'0.01–3 mcg/kg/min',usual:[0.05,0.3],mg100:4,unit:'mcg/kg/min'},
+  'adrenalina':{n:'Adrenalina',range:'0.01–1 mcg/kg/min',usual:[0.05,0.5],mg100:4,unit:'mcg/kg/min'},
+  'fenilefrina':{n:'Fenilefrina',range:'0.1–2 mcg/kg/min',usual:[0.3,1],mg100:10,unit:'mcg/kg/min',bolo:'50–100 mcg IV'},
+  'dopamina':{n:'Dopamina',range:'2–20 mcg/kg/min',usual:[5,10],mg100:200,unit:'mcg/kg/min'},
+  'dobutamina':{n:'Dobutamina',range:'2–20 mcg/kg/min',usual:[5,10],mg100:250,unit:'mcg/kg/min'},
+  'efedrina':{n:'Efedrina',bolo_only:true,bolo:'5–15 mg IV. Max 30 mg total. Taquifilaxia.'},
+  'vasopresina':{n:'Vasopresina',range:'0.01–0.04 UI/min (fija)',fija:true,note:'20 UI en 50 mL SF = 0.4 UI/mL. 0.03 UI/min = 4.5 mL/h'},
+  'nitroglicerina':{n:'Nitroglicerina',range:'0.1–10 mcg/kg/min',usual:[0.5,3],mg100:25,unit:'mcg/kg/min',note:'Vidrio/polietileno.'},
+  'nitroprusito':{n:'Nitroprusito',range:'0.25–10 mcg/kg/min',usual:[0.5,3],mg100:50,unit:'mcg/kg/min',note:'Proteger de luz. Toxicidad cianuro a dosis altas y prolongadas.'},
+  'esmolol':{n:'Esmolol',range:'50–200 mcg/kg/min',usual:[100,200],mg100:2500,unit:'mcg/kg/min',note:'Carga 500 mcg/kg en 1 min.'},
+  'labetalol':{n:'Labetalol',bolo_only:true,bolo:'5–20 mg IV lento c/5 min. Max 300 mg.'},
+  'metaraminol':{n:'Metaraminol',bolo_only:false,range:'0.5–5 mcg/kg/min',bolo:'0.5–5 mg IV bolo',usual:[1,3],mg100:100,unit:'mcg/kg/min'}
+};
+
+function calcVaso() {
+  const p = parseFloat(document.getElementById('vaso-peso').value);
+  const key = document.getElementById('vaso-drug').value;
+  const vol = parseInt(document.getElementById('vaso-dil').value);
+  const d = VASOS[key]; if(!p||!d) return;
+  let html = `<div style="color:var(--accent2);font-weight:700;font-family:var(--mono);margin-bottom:8px;font-size:11px">${d.n}</div>`;
+  if(d.bolo_only) { html += ri('Dosis/indicación', d.bolo||'', 'w'); if(d.note) html += `<div style="color:var(--text3);font-size:11px;margin-top:6px">ℹ️ ${d.note}</div>`; }
+  else if(d.fija) { html += ri('Rango', d.range); if(d.note) html += `<div style="color:var(--text3);font-size:11px;margin-top:6px">ℹ️ ${d.note}</div>`; }
+  else {
+    html += ri('Rango', d.range);
+    const concMcgML = (d.mg100 * 1000) / vol;
+    const rMin = ((p*d.usual[0]*60)/concMcgML).toFixed(1), rMax = ((p*d.usual[1]*60)/concMcgML).toFixed(1);
+    html += ri(`Rate habitual (${vol} mL dil.)`, `${rMin}–${rMax} mL/h`, 'ok');
+    html += ri('Concentración', `${concMcgML.toFixed(0)} mcg/mL`);
+    if(d.bolo) html += ri('Bolo', d.bolo);
+    if(d.note) html += `<div style="color:var(--text3);font-size:11px;margin-top:6px">ℹ️ ${d.note}</div>`;
+  }
+  showRes('vaso-res', html);
+}
+
+function calcFluidos() {
+  const p = parseFloat(document.getElementById('fl-peso').value);
+  const h = parseFloat(document.getElementById('fl-alt').value);
+  const hb = parseFloat(document.getElementById('fl-hb').value);
+  const sx = document.getElementById('fl-sexo').value;
+  const pi = sx==='M' ? 50+0.91*(h-152.4) : 45.5+0.91*(h-152.4);
+  const vsc = sx==='M' ? p*70 : p*65;
+  const hto = hb*3;
+  const pml = vsc*(hto-21)/hto;
+  const gr = Math.ceil(pml/350);
+  const m = p<=10?p*4:p<=20?40+(p-10)*2:60+(p-20);
+  showRes('fl-res', ri('Peso ideal',`${pi.toFixed(1)} kg`) + ri('VSC estimado',`${vsc.toFixed(0)} mL`) + ri('Hb/Hto',`${hb} g/dL / ${hto.toFixed(0)}%`) + ri('Pérdida máx aceptable (umbral Hb 7)',`${pml.toFixed(0)} mL`, hb>8?'ok':'w') + ri('Mantenimiento/hora',`${m} mL/h`) + ri('GR para ↑1 g/dL Hb',`~${gr} unidades`,'w'));
+}
+
+function calcHCO3() {
+  const p=parseFloat(document.getElementById('hco3-p').value);
+  const a=parseFloat(document.getElementById('hco3-a').value);
+  const t=parseFloat(document.getElementById('hco3-t').value);
+  const def=(0.3*p*(t-a)).toFixed(0);
+  const mit=(def/2).toFixed(0);
+  showRes('hco3-res', ri('Déficit total HCO₃',`${def} mEq`,'w') + ri('1ª dosis (50%)',`${mit} mEq`,'ok') + ri('Vol NaHCO₃ 8.4%',`${mit} mL`) + ri('Vol NaHCO₃ 1/6M',`${(mit*6).toFixed(0)} mL`) + `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ Infundir en 30 min. GSA control post-infusión.</div>`);
+}
+
+function calcNa() {
+  const p=parseFloat(document.getElementById('na-p').value);
+  const a=parseFloat(document.getElementById('na-a').value);
+  const t=parseFloat(document.getElementById('na-t').value);
+  const acua=(p*0.6).toFixed(1);
+  const def=(acua*(t-a)).toFixed(0);
+  showRes('na-res', ri('Agua total corporal',`${acua} L`) + ri('Déficit Na⁺',`${def} mEq`) + ri('Tiempo corrección (máx 10 mEq/24h)',`${(Math.abs(t-a)/10*24).toFixed(0)} h mínimo`,'w') + (a<130?ri('Vol ClNa 3% aprox.',`${(def/513*1000).toFixed(0)} mL`):''));
+}
+
+function calcK() {
+  const a=parseFloat(document.getElementById('k-a').value);
+  const t=parseFloat(document.getElementById('k-t').value);
+  const p=parseFloat(document.getElementById('k-p').value);
+  const def=((t-a)*p*0.4).toFixed(0);
+  showRes('k-res', ri('Déficit K⁺ estimado',`${def} mEq`, a<3?'w':'ok') + ri('Rate máx IV periférica','10 mEq/h (20 mEq/h CVC monitorizado)') + ri('KCl a reponer',`${def} mEq`,'w') + `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ Reponer Mg²⁺ concomitante. ECG continuo si >0.5 mEq/h. Osmolaridad periférica: max 40 mEq/250 mL.</div>`);
+}
+
+function calcTCI() {
+  const p=parseFloat(document.getElementById('tci-peso').value);
+  const edad=parseFloat(document.getElementById('tci-edad').value);
+  const h=parseFloat(document.getElementById('tci-alt').value);
+  const modelo=document.getElementById('tci-modelo').value;
+  const ce=parseFloat(document.getElementById('tci-ce').value);
+  let html='';
+  if(modelo==='schnider') {
+    const lbm = p - ((p*p)/(h*h)*703*0.0000454); // approx
+    html = ri('Modelo','Schnider (basado en edad, peso, altura)') + ri('Ce objetivo',`${ce} mcg/mL`,'w') + ri('Rangos Ce inducción','4–6 mcg/mL') + ri('Rangos Ce mantenimiento','2.5–4 mcg/mL') + ri('Ce-awake estimada','~1–1.5 mcg/mL','ok') + `<div style="color:var(--text3);font-size:11px;margin-top:8px">ℹ️ Schnider usa LBM y edad para V1 y k. Ajustar BIS 40–60 intraoperatorio. Reducir Ce 25–30% si combina con remifentanilo.</div>`;
+  } else {
+    const v1=0.228*p;
+    html = ri('Modelo','Marsh (basado en peso total)') + ri('V1 estimado',`${v1.toFixed(1)} L`) + ri('Ce objetivo',`${ce} mcg/mL`,'w') + ri('Rangos Ce inducción','4–8 mcg/mL') + ri('Rangos Ce mantenimiento','3–5 mcg/mL') + `<div style="color:var(--text3);font-size:11px;margin-top:8px">ℹ️ Marsh sobreestima dosis en pacientes delgados/ancianos. Preferir Schnider en estos casos.</div>`;
+  }
+  showRes('tci-res', html);
+}
+
+function calcRemi() {
+  const p=parseFloat(document.getElementById('remi-peso').value);
+  const modo=document.getElementById('remi-modo').value;
+  const conc=50; // 1mg en 20mL
+  const ranges={ind:[0.3,0.5],mant:[0.1,0.4],anal:[0.05,0.1]};
+  const r=ranges[modo];
+  const rMin=((p*r[0]*60)/conc).toFixed(1), rMax=((p*r[1]*60)/conc).toFixed(1);
+  const label={ind:'Inducción',mant:'Mantenimiento',anal:'Analgesia leve'};
+  showRes('remi-res', ri('Fase',label[modo]) + ri(`Rate (${r[0]}–${r[1]} mcg/kg/min)`,`${rMin}–${rMax} mL/h`,'w') + ri('Preparación estándar','1 mg en 20 mL SF = 50 mcg/mL') + ri('Modelo TCI','Minto (Ce 2–6 ng/mL mantenimiento)'));
+}
+
+function calcTIVA() {
+  const p=parseFloat(document.getElementById('tiva-peso').value);
+  const modo=document.getElementById('tiva-modo').value;
+  const modos={ind:{l:'Inducción',min:6,max:9},prof:{l:'Mantenimiento profundo',min:4,max:6},mod:{l:'Mantenimiento moderado',min:2.5,max:4},sed:{l:'Sedación',min:1,max:2}};
+  const m=modos[modo];
+  const tmin=(p*m.min/10).toFixed(1), tmax=(p*m.max/10).toFixed(1);
+  showRes('tiva-res', ri('Fase',m.l) + ri(`Rate (propofol 10 mg/mL puro)`,`${tmin}–${tmax} mL/h`,'ok') + ri('mcg/kg/min equivalente',`${(m.min*1000/60).toFixed(0)}–${(m.max*1000/60).toFixed(0)} mcg/kg/min`) + `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ Síndrome infusión propofol: &gt;4 mg/kg/h &gt;48h. Monitorizar ECG, CK, triglicéridos.</div>`);
+}
+
+function calcVent() {
+  const p=parseFloat(document.getElementById('vent-peso').value);
+  const h=parseFloat(document.getElementById('vent-alt').value);
+  const sx=document.getElementById('vent-sexo').value;
+  const pao2=parseFloat(document.getElementById('vent-pao2').value);
+  const fio2=parseFloat(document.getElementById('vent-fio2').value)/100;
+  const pi=sx==='M'?50+0.91*(h-152.4):45.5+0.91*(h-152.4);
+  const vt6=(pi*6).toFixed(0), vt8=(pi*8).toFixed(0);
+  const pafi=(pao2/fio2).toFixed(0);
+  const pafiLabel=parseInt(pafi)>300?'Normal':parseInt(pafi)>200?'ARDS Leve-Mod':parseInt(pafi)>100?'ARDS Severo':'ARDS Muy severo';
+  const pafiCls=parseInt(pafi)>300?'ok':parseInt(pafi)>200?'w':'d';
+  showRes('vent-res', ri('Peso ideal',`${pi.toFixed(1)} kg`) + ri('VT protector 6 mL/kg IBW',`${vt6} mL`,'ok') + ri('VT máx 8 mL/kg IBW',`${vt8} mL`,'w') + ri(`PaFi (${pao2}/${(fio2*100).toFixed(0)}%)`,`${pafi} — ${pafiLabel}`,pafiCls));
+}
+
+// ===== PEDIATRÍA =====
+const PED_DRUGS = {
+  'propofol-ped':{n:'Propofol',min:2.5,max:4,u:'mg/kg',note:'Niños &gt;3 años. ↓ dosis si &lt;3 años. Apnea frecuente.'},
+  'ketamina-ped':{n:'Ketamina',min:2,max:3,u:'mg/kg',note:'Ideal en procedimientos. Ideal &lt;3 años y premedicación.'},
+  'sevoflurano-ind':{n:'Sevoflurano (CAM)',dosis:2.6,u:'% (CAM neonato~3.3%, ↓con edad)',note:'Inducción inhalatoria 6–8% aprox. CAM 2.0–3.3% según edad.'},
+  'tiopental-ped':{n:'Tiopental',min:5,max:8,u:'mg/kg',note:'Neonatos: 3–4 mg/kg. ↓ PIC.'},
+  'scc-ped':{n:'Succinilcolina pediátrica',min:1.5,max:2,u:'mg/kg (lactantes: 2mg/kg)',note:'Dosis más alta en niños por mayor Vd. CI: miopatías.'},
+  'rocuronio-ped':{n:'Rocuronio',dosis:0.6,u:'mg/kg',note:'ISR: 1.2 mg/kg. Sugammadex 16 mg/kg reverso.'},
+  'atracurio-ped':{n:'Atracurio',dosis:0.5,u:'mg/kg',note:'Ideal en IR/IH. Hofmann.'},
+  'fentanilo-ped':{n:'Fentanilo',min:1,max:4,u:'mcg/kg',note:'Neonatos: 1–2 mcg/kg. Monitoreo resp estricto.'},
+  'morfina-ped':{n:'Morfina IV',min:0.05,max:0.1,u:'mg/kg',note:'Titular en bolos de 0.05 mg/kg. Monitoreo resp.'},
+  'paracetamol-ped':{n:'Paracetamol IV/VO',dosis:15,u:'mg/kg',note:'Max 1g/dosis. Máx 4 dosis/día. &lt;10 kg: VO preferible.'},
+  'ibuprofeno-ped':{n:'Ibuprofeno VO',min:5,max:10,u:'mg/kg',note:'c/6–8h. Max 40 mg/kg/día. &gt;6 meses.'},
+  'ketorolac-ped':{n:'Ketorolac IV',dosis:0.5,u:'mg/kg (max 15 mg)',note:'Max 5 días. &gt;2 años. CI: IR, plaquetopenia.'},
+  'adrenalina-ped':{n:'Adrenalina PCR/anafilaxia',min:0.01,max:0.01,u:'mg/kg IV/IO (0.1 mL/kg de 1:10.000)',note:'c/3–5 min en PCR. Anafilaxia: 0.01 mg/kg IM.'},
+  'atropina-ped':{n:'Atropina',min:0.01,max:0.02,u:'mg/kg (min 0.1 mg, max 1 mg)',note:'Bradicardia. Premedicación en &lt;1 año.'},
+  'bicarb-ped':{n:'Bicarbonato',dosis:1,u:'mEq/kg IV',note:'pH &lt;7.1 o hiperpotasemia severa. Diluir 1:1 en &lt;neonatos.'},
+  'glucosa-ped':{n:'Glucosa 10%',dosis:5,u:'mL/kg IV',note:'Hipoglucemia (glucemia &lt;45 mg/dL). Aporta 0.5 g/kg glucosa.'},
+  'midazolam-ped':{n:'Midazolam (sedación/premedicación)',min:0.05,max:0.1,u:'mg/kg IV (0.3–0.5 mg/kg VO)',note:'Premedicación VO 20–30 min antes.'},
+  'ondansetron-ped':{n:'Ondansetron',min:0.1,max:0.15,u:'mg/kg IV (max 4 mg)',note:'PONV en &gt;1 mes.'},
+  'dexametasona-ped':{n:'Dexametasona',min:0.1,max:0.2,u:'mg/kg (max 8 mg)',note:'PONV + inflamación. Dosis única preop.'}
+};
+
+function calcPed() {
+  const p=parseFloat(document.getElementById('ped-peso').value);
+  const e=parseFloat(document.getElementById('ped-edad').value);
+  const drug=document.getElementById('ped-drug').value;
+  const d=PED_DRUGS[drug]; if(!p||!d) return;
+  let html=`<div style="color:var(--accent3);font-weight:700;font-family:var(--mono);margin-bottom:6px;font-size:11px">👶 ${p} kg — ${e} años</div>`;
+  if(d.dosis) {
+    const u=d.u.includes('fija')||d.u.includes('mL/kg')||d.u.includes('mEq/kg')?d.u:'';
+    const tot=u.includes('mL/kg')?(p*d.dosis).toFixed(1)+' mL':u.includes('mEq/kg')?(p*d.dosis).toFixed(0)+' mEq':(p*d.dosis).toFixed(1);
+    const disp=u.includes('mL/kg')||u.includes('mEq/kg')?tot:`${tot} ${d.u.split('/')[0]}`;
+    html += ri(`${d.n} (${d.dosis} ${d.u})`, disp, 'w');
+  } else {
+    const u=d.u.split('/')[0];
+    html += ri(`${d.n} (${d.min}–${d.max} ${d.u})`,`${(p*d.min).toFixed(1)}–${(p*d.max).toFixed(1)} ${u}`,'w');
+  }
+  html += `<div style="color:var(--text3);font-size:11px;font-family:var(--mono);margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">ℹ️ ${d.note}</div>`;
+  showRes('ped-res', html);
+}
+
+function calcViaAereaPed() {
+  const edad=parseFloat(document.getElementById('ped-via-edad').value);
+  const peso=parseFloat(document.getElementById('ped-via-peso').value);
+  const tnc=(edad/4+4).toFixed(1);
+  const tc=(edad/4+3.5).toFixed(1);
+  const prof=(edad/2+12).toFixed(0);
+  const lma=peso<=5?'1':peso<=10?'1.5':peso<=20?'2':peso<=30?'2.5':'3';
+  const bq=peso<=10?'2.5':peso<=20?'3.0':peso<=30?'3.5':'4.0';
+  showRes('ped-via-res',
+    ri('Tubo ET sin cuff',`${tnc} (fórmula: edad/4+4)`,'w') +
+    ri('Tubo ET con cuff',`${tc} (fórmula: edad/4+3.5)`,'ok') +
+    ri('Profundidad inserción',`${prof} cm (fórmula: edad/2+12)`) +
+    ri('LMA sugerida (talla)',`#${lma}`) +
+    ri('Broncoscopio/guía (mm)',`${bq} mm`) +
+    `<div style="color:var(--text3);font-size:11px;margin-top:8px">ℹ️ Verificar auscultación bilateral. Controlar posición con capnografía continua.</div>`);
+}
+
+function calcRCPPed() {
+  const p=parseFloat(document.getElementById('rcp-ped-peso').value);
+  const tipo=document.getElementById('rcp-ped-edad').value;
+  const adr1=(p*0.01).toFixed(2);
+  const adr_mg=`${adr1} mg IV/IO (0.1 mL/kg de 1:10.000)`;
+  const defib1=(p*2).toFixed(0), defib2=(p*4).toFixed(0);
+  const amio=(p*5).toFixed(0);
+  const bicarb=(p*1).toFixed(0);
+  const profundidad=tipo==='lactante'?'≥4 cm':tipo==='nino'?'≥5 cm':'5–6 cm';
+  const ratio=tipo==='mayor'?'30:2':'15:2 (2 reanimadores) / 30:2 (1 reanimador)';
+  showRes('rcp-ped-res',
+    ri('Adrenalina (0.01 mg/kg)',adr_mg,'d') +
+    ri('Desfibrilación 1er choque (2J/kg)',`${defib1} J`,'w') +
+    ri('Desfibrilación 2do+ choque (4J/kg)',`${defib2} J (máx ${Math.min(p*10,360).toFixed(0)} J)`,'w') +
+    ri('Amiodarona (5 mg/kg)',`${amio} mg IV (tras 3er choque)`,'') +
+    ri('Bicarbonato (1 mEq/kg)',`${bicarb} mEq`) +
+    ri('Profundidad compresiones', profundidad) +
+    ri('Ratio compresiones:ventilaciones', ratio));
+}
+
+function calcVentPed() {
+  const p=parseFloat(document.getElementById('vent-ped-peso').value);
+  const e=parseFloat(document.getElementById('vent-ped-edad').value);
+  const vt6=(p*6).toFixed(0), vt8=(p*8).toFixed(0);
+  const fr=e<1?35:e<3?28:e<6?24:e<10?20:16;
+  const vm=(p*6*fr/1000).toFixed(1);
+  showRes('vent-ped-res',
+    ri('VT protector (6 mL/kg)',`${vt6} mL`,'ok') +
+    ri('VT máx (8 mL/kg)',`${vt8} mL`,'w') +
+    ri('FR recomendada',`${fr} rpm`) +
+    ri('VM minuto estimado',`${vm} L/min`) +
+    ri('PEEP inicial','4–5 cmH₂O') +
+    ri('Pplat objetivo','&lt;28 cmH₂O (neonatos &lt;25)') +
+    `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ Evitar hipocapnia en neonatos (vasoconstricción pulmonar). Target PaCO₂ 35–45.</div>`);
+}
+
+// ===== CHECKLIST =====
+function ck(item) { item.classList.toggle('checked'); item.querySelector('.ck-box').textContent = item.classList.contains('checked')?'✓':''; }
+function resetCL() { document.querySelectorAll('.ck-item').forEach(i => { i.classList.remove('checked'); i.querySelector('.ck-box').textContent=''; }); }
+
+// ===== AI CHAT =====
+const SYS = `Eres ANEST·OR, un asistente clínico de anestesiología avanzado integrado en una app de referencia para anestesiólogos en quirófano. Das respuestas directas, concisas y accionables. El usuario es un anestesiólogo competente.
+
+REGLAS GENERALES:
+- Responde SIEMPRE en español
+- Sé directo — no hay tiempo en el quirófano. Sin preámbulos.
+- Usa dosis exactas con unidades: mg/kg, mcg/kg/min, mL/h, J, ng/mL, mcg/mL
+- Para emergencias: pasos numerados con acciones inmediatas. Paso 1 = PEDIR AYUDA.
+- Para dosis: fármaco + dosis + vía + nota clave. Sin texto innecesario.
+- Cita guías: ASA, AHA, ERC, ESRA, MHAUS, ASRA 2023, ILCOR 2021, DAS 2022, AAGBI 2022, WFSA
+- Ajusta dosis por contexto: ancianos (↓25-40%), obesos (peso ideal), pediátrico, IR, IH
+- Menciona contraindicaciones críticas siempre
+- Usa **negritas** para dosis críticas y acciones urgentes
+- Sin disclaimers. El usuario sabe lo que hace.
+
+EMERGENCIAS — formato obligatorio:
+⟶ Situación reconocida + acción inmediata
+1. Acción 1 — **dosis exacta**
+2. Acción 2 — **dosis exacta**
+...
+
+CALCULADORAS — cuando pidan dosis, responder con:
+| Fármaco | Dosis | Total (Xkg) | Notas |
+
+POCUS:
+- Describe ventana, transductor, hallazgos esperados e interpretación
+- FATE: subcostal → PLAX → PSAX → apical A4C
+- RUSH: Pump → Tank → Pipes → Pulmón
+- VCI: diámetro + colapsabilidad + PVC estimada
+- Nervios: referencia anatómica + frecuencia transductor + volumen AL
+
+PEDIATRÍA:
+- Solicita SIEMPRE edad Y peso si no están dados
+- Peso estimado: (Edad×2)+8 kg (1-10a)
+- Tubo ET: sin cuff = edad/4+4 | con cuff = edad/4+3.5
+- Desfibrilación: 2J/kg → 4J/kg
+- Adrenalina RCP: 0.01 mg/kg (0.1 mL/kg de 1:10.000)
+- FR por edad: RN 40-60 | Lactante 30-40 | 1-5a 22-28 | 6-12a 18-22
+
+TIVA/TCI:
+- Propofol Schnider: Ce inducción 4-6 mcg/mL | mantenimiento 2.5-4 mcg/mL
+- Propofol Marsh: Ce inducción 4-8 | mant 3-5 | V1=0.228×peso
+- Remifentanilo Minto: inducción 0.3-0.5 mcg/kg/min | mant 0.1-0.4
+- Sinergia propofol+remi: ↓25-35% Ce propofol
+- BIS objetivo: AG 40-60 | Sedación profunda 60-70 | Consciente 70-80
+- Síndrome infusión propofol: >4 mg/kg/h × >48h → ECG + CK
+
+VENTILACIÓN:
+- VT protector: 6 mL/kg peso ideal
+- Pplat <30 cmH₂O | Driving pressure <15 cmH₂O
+- PEEP: 5-8 cmH₂O estándar | table ARDSNet si SDRA
+- PaFi <200 = SDRA moderado | <100 = severo
+- Decúbito prono si PaFi <150 refractario
+
+ANESTESIA NEUROAXIAL:
+- Raquianestesia: bupi hiperbárica 0.5% 2.5-4 mL = T6-T4
+- Complicación bloqueo alto: IOT + vasopresores + RCP si PCR
+- PDPH: cafeína → analgesia → parche hemático 15-20 mL (refractaria)
+- Dosis prueba epidural: lidocaína 2% 3mL + adrenalina → ↑FC >20lpm = intravascular
+
+PERFILES ADVERSOS CRÍTICOS:
+- Propofol: ↓PAM 25-40% | síndrome infusión >4mg/kg/h >48h
+- Ketamina: ↑PIC | alucinaciones → midazolam 0.05mg/kg profiláctico
+- Halogenados: HM (↑ETCO₂ → dantroleno 2.5mg/kg)
+- Succinilcolina: ↑K+ 0.5 mEq/L | CI: miopatías, quemados crónicos, denervación
+- Rocuronio: reversión sugammadex 16mg/kg profundo | 4mg/kg moderado | 2mg/kg leve
+- Remifentanilo: hiperalgesia post-TIVA → AINEs 30min antes de finalizar
+
+HEMODINAMIA:
+- Shock hipovolémico: PVC↓ PCP↓ GC↓ RVS↑ → volumen + hemostasia
+- Shock cardiogénico: PVC↑ PCP↑ GC↓ RVS↑ → inotrópicos + diuréticos
+- Shock distributivo (séptico): GC↑ RVS↓↓ → noradrenalina + hidrocortisona
+- Shock obstructivo (TEP): PVC↑ GC↓ VD dilatado → trombólisis o anticoag
+- Vasopresores: noradrenalina 0.05-0.3 mcg/kg/min | adrenalina 0.05-0.5 | fenilefrina 0.3-1`;
+
+
+let history=[];
+
+async function sendMsg() {
+  const inp=document.getElementById('chatInp');
+  const msg=inp.value.trim(); if(!msg) return;
+  inp.value='';
+  appendMsg(msg,'user');
+  history.push({role:'user',content:msg});
+  document.getElementById('sendBtn').disabled=true;
+  const typing=appendTyping();
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS,messages:history})});
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'Error al procesar.';
+    history.push({role:'assistant',content:text});
+    typing.remove();
+    appendMsg(fmt(text),'assistant',true);
+  } catch(e) { typing.remove(); appendMsg('Error de conexión. Usa los protocolos del panel izquierdo.','assistant'); }
+  document.getElementById('sendBtn').disabled=false;
+}
+
+function fmt(t) {
+  return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/`(.*?)`/g,'<code style="background:var(--bg);padding:1px 4px;border-radius:2px;font-family:var(--mono);color:var(--accent2);font-size:11px">$1</code>').replace(/^(\d+\.) (.+)$/gm,'<div style="margin:3px 0"><span style="color:var(--accent);font-weight:700">$1</span> $2</div>').replace(/^[•\-] (.+)$/gm,'<div style="margin:2px 0">• $1</div>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+
+function appendMsg(content, role, isHTML=false) {
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.className=`msg ${role}`;
+  const now=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=(isHTML?content:esc(content))+`<div class="msg-time">${now}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const msgs=document.getElementById('chatMsgs');
+  const div=document.createElement('div');
+  div.innerHTML=`<div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+</script>
+</body>
+</html>
