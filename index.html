@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANEST·OR v3.1</title>
+<title>ANEST·OR v3.2</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -203,7 +203,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 </head>
 <body>
 <header>
-  <div class="logo">ANEST<span style="color:var(--text3)">·</span>OR <em>v3.1</em></div>
+  <div class="logo">ANEST<span style="color:var(--text3)">·</span>OR <em>v3.2</em></div>
   <div class="search-wrap">
     <input type="text" id="searchInput" placeholder="hipotensión · anafilaxia · propofol 70kg · tubo ET 5 años · TCI Marsh ..." autocomplete="off" oninput="liveSearch(this.value)" onkeydown="searchKey(event)">
     <span class="search-icon">⌕</span>
@@ -258,6 +258,11 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   <button class="sb" onclick="show('neuroaxial')" id="btn-neuroaxial"><span class="si">🔷</span>Neuroaxial</button>
   <button class="sb" onclick="show('farmaco-av')" id="btn-farmaco-av"><span class="si">🧬</span>Farmacología Avanz.</button>
   <button class="sb" onclick="show('perfiles-ea')" id="btn-perfiles-ea"><span class="si">⚗️</span>Perfiles Efec. Adv.</button>
+  <div class="sl">Módulos Avanzados</div>
+  <button class="sb" onclick="show('regional')" id="btn-regional"><span class="si">💉</span>Anest. Regional</button>
+  <button class="sb" onclick="show('insulina')" id="btn-insulina"><span class="si">🩸</span>Insulina Periop.</button>
+  <button class="sb" onclick="show('acidobase')" id="btn-acidobase"><span class="si">⚗️</span>Ácido-Base Dual</button>
+
 </nav>
 
 <!-- MAIN -->
@@ -283,6 +288,9 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
     <div class="qc ca" onclick="show('calc-medio')"><div class="qc-icon">⚗️</div><div class="qc-title">Medio Interno</div><div class="qc-sub">HCO₃ · Na · K · Ca</div></div>
     <div class="qc in" onclick="show('checklist')"><div class="qc-icon">✅</div><div class="qc-title">Check Inducción</div><div class="qc-sub">WHO · WFSA</div></div>
     <div class="qc in" onclick="show('farmaco-av')"><div class="qc-icon">🧬</div><div class="qc-title">Farmacología Avanz.</div><div class="qc-sub">FK/FD · Interacciones</div></div>
+    <div class="qc in" onclick="show('regional')"><div class="qc-icon">💉</div><div class="qc-title">Anest. Regional</div><div class="qc-sub">Bupivacaína · Ropivacaína · Vol. máx.</div></div>
+    <div class="qc in" onclick="show('insulina')"><div class="qc-icon">🩸</div><div class="qc-title">Insulina Periop.</div><div class="qc-sub">Glucemia · Corrección · Neo./Ped./Emb.</div></div>
+    <div class="qc in" onclick="show('acidobase')"><div class="qc-icon">⚗️</div><div class="qc-title">Ácido-Base Dual</div><div class="qc-sub">Henderson-Hasselbalch · Stewart · Síntesis</div></div>
   </div>
   <div class="alert i"><span class="alert-icon">🤖</span><div>Panel derecho → <strong>Consulta IA</strong> en lenguaje natural: <em style="color:var(--text2)">"Paciente 70kg hipotensión post-inducción"</em> · <em style="color:var(--text2)">"Dosis sugammadex bloqueo profundo"</em> · <em style="color:var(--text2)">"Niño 18kg, ISR"</em></div></div>
 </div>
@@ -1749,6 +1757,383 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 
 </main>
 
+<!-- ═══════════════════════════════════════════════════════════
+     MÓDULO: ANESTESIA REGIONAL
+     Calculadora de volumen máximo de AL por tipo de paciente
+═══════════════════════════════════════════════════════════ -->
+<div id="section-regional" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="tag tok">CALCULADORA</span>
+      <span class="card-hdr-title">Anestesia Regional — Dosis Máximas & Volúmenes</span>
+      <span class="tag ti">ESRA 2023 · ASRA 2023</span>
+    </div>
+    <div class="card-body">
+
+      <!-- Selector tipo paciente -->
+      <div style="margin-bottom:14px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Tipo de paciente</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="setRegPt('adulto')" id="reg-pt-adulto" class="reg-pt-btn active-adult" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid rgba(0,200,255,.3);background:rgba(0,200,255,.08);color:var(--accent);cursor:pointer">ADULTO</button>
+          <button onclick="setRegPt('ped')" id="reg-pt-ped" class="reg-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">PEDIÁTRICO</button>
+          <button onclick="setRegPt('neo')" id="reg-pt-neo" class="reg-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">NEONATAL</button>
+          <button onclick="setRegPt('emb')" id="reg-pt-emb" class="reg-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">EMBARAZADA</button>
+        </div>
+      </div>
+
+      <!-- Banner contexto paciente -->
+      <div id="reg-banner" style="background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.2);border-radius:4px;padding:9px 12px;margin-bottom:14px;font-size:12px;display:flex;gap:8px;align-items:flex-start">
+        <span style="font-size:15px">👤</span>
+        <div id="reg-banner-text"><strong style="color:var(--accent)">Adulto:</strong> Dosis calculadas sobre peso real. Reducir 20-30% en ancianos, caquexia o deterioro hepático. Sin restricciones de técnica.</div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'reg-calc')">Calculadora</div>
+        <div class="tab" onclick="tab(this,'reg-tecnicas')">Técnicas & Volúmenes</div>
+        <div class="tab" onclick="tab(this,'reg-conc')">Concentraciones</div>
+        <div class="tab" onclick="tab(this,'reg-ci')">Contraindicaciones</div>
+      </div>
+
+      <!-- TAB: CALCULADORA -->
+      <div id="reg-calc">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="reg-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Fármaco</div>
+              <select class="cs" id="reg-drug">
+                <optgroup label="— Amino-amidas —">
+                  <option value="bupi">Bupivacaína</option>
+                  <option value="levobupi">Levobupivacaína</option>
+                  <option value="ropi">Ropivacaína</option>
+                  <option value="lido">Lidocaína</option>
+                  <option value="prilo">Prilocaína</option>
+                </optgroup>
+                <optgroup label="— Con vasoconstrictor —">
+                  <option value="bupi-adre">Bupivacaína + Adrenalina</option>
+                  <option value="lido-adre">Lidocaína + Adrenalina</option>
+                  <option value="ropi-adre">Ropivacaína + Adrenalina</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="cg"><div class="cl">Bloqueo / Técnica</div>
+              <select class="cs" id="reg-tecnica">
+                <optgroup label="— Neuroaxial —">
+                  <option value="it">Intratecal (raquídea)</option>
+                  <option value="epidural">Epidural lumbar</option>
+                  <option value="epidural-tor">Epidural torácica</option>
+                </optgroup>
+                <optgroup label="— Plexo / Nervio —">
+                  <option value="interesc">Interescalénico</option>
+                  <option value="supracla">Supraclavicular</option>
+                  <option value="infracla">Infraclavicular</option>
+                  <option value="axilar">Axilar</option>
+                  <option value="femoral">Femoral</option>
+                  <option value="fascia-iliaca">Fascia ilíaca</option>
+                  <option value="ciatico">Ciático poplíteo</option>
+                  <option value="adductor">Canal aductor (safeno)</option>
+                  <option value="tap">TAP bilateral</option>
+                  <option value="paravert">Paravertebral torácico</option>
+                  <option value="pecs">PECS I/II</option>
+                  <option value="erector">Erector spinae (ESP)</option>
+                  <option value="qlb">Cuadrado lumbar (QLB)</option>
+                </optgroup>
+                <optgroup label="— Cabeza & Cuello —">
+                  <option value="plexo-cerv">Plexo cervical superficial</option>
+                  <option value="mandibular">Nervio mandibular/dental</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="crow">
+            <div class="cg"><div class="cl">Concentración</div>
+              <select class="cs" id="reg-conc-sel">
+                <option value="0.25">0.25%</option>
+                <option value="0.375">0.375%</option>
+                <option value="0.5" selected>0.5%</option>
+                <option value="0.75">0.75%</option>
+                <option value="1.0">1.0%</option>
+                <option value="2.0">2.0%</option>
+              </select>
+            </div>
+            <div class="cg" style="align-self:flex-end"><button class="cbtn" onclick="calcRegional()">Calcular</button></div>
+          </div>
+          <div class="cres" id="reg-res" style="display:none"></div>
+        </div>
+
+        <div class="alert i" style="margin-top:12px"><span class="alert-icon">ℹ️</span><div>Siempre realizar aspiración negativa antes de inyectar. Dosis fraccionada con dosis prueba (lidocaína 3 mL + adrenalina 1:200.000). Monitoreo continuo SpO₂, ECG y comunicación verbal durante el bloqueo.</div></div>
+      </div>
+
+      <!-- TAB: TÉCNICAS & VOLÚMENES -->
+      <div id="reg-tecnicas" class="hidden">
+        <div id="reg-tec-content">
+          <!-- Se llena dinámicamente según paciente -->
+        </div>
+      </div>
+
+      <!-- TAB: CONCENTRACIONES -->
+      <div id="reg-conc" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:10px">GUÍA DE CONCENTRACIONES POR INDICACIÓN</div>
+        <table class="tbl"><thead><tr><th>Indicación</th><th>Bupivacaína</th><th>Ropivacaína</th><th>Lidocaína</th><th>Efecto clínico</th></tr></thead><tbody>
+          <tr><td>Intratecal</td><td class="dn">0.5% hiper/iso</td><td class="dn">0.5%</td><td class="dn">2% hiperbárica</td><td class="dnote">Bloqueo quirúrgico</td></tr>
+          <tr><td>Epidural inducción</td><td class="dn">0.5%</td><td class="dn">0.5–0.75%</td><td class="dn">2%</td><td class="dnote">Bloqueo sensitivo-motor</td></tr>
+          <tr><td>Epidural mantenimiento</td><td class="dn">0.1–0.125%</td><td class="dn">0.2%</td><td class="dn">0.5–1%</td><td class="dnote">Analgesia, bloqueo motor mínimo</td></tr>
+          <tr><td>Analgesia parto</td><td class="dn">0.0625–0.1%</td><td class="dn">0.1%</td><td class="dn">—</td><td class="dnote">Deambulación posible</td></tr>
+          <tr><td>Bloqueo periférico mayor</td><td class="dn">0.375–0.5%</td><td class="dn">0.5–0.75%</td><td class="dn">1–1.5%</td><td class="dnote">Bloqueo quirúrgico completo</td></tr>
+          <tr><td>Bloqueo periférico analgésico</td><td class="dn">0.125–0.25%</td><td class="dn">0.2%</td><td class="dn">0.5%</td><td class="dnote">Analgesia postoperatoria</td></tr>
+          <tr><td>Infiltración local</td><td class="dn">0.25%</td><td class="dn">0.2%</td><td class="dn">0.5–1%</td><td class="dnote">Analgesia local</td></tr>
+          <tr><td>TAP / Fascial planes</td><td class="dn">0.25%</td><td class="dn">0.25–0.375%</td><td class="dn">0.5%</td><td class="dnote">Alto volumen, baja concentración</td></tr>
+        </tbody></table>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div><strong>Bupivacaína 0.75%:</strong> Solo intratecal o epidural torácica con extrema precaución. Mayor riesgo cardiotóxico. NUNCA IV directa. Preferir levobupivacaína o ropivacaína en bloqueos de alto volumen.</div></div>
+      </div>
+
+      <!-- TAB: CONTRAINDICACIONES -->
+      <div id="reg-ci" class="hidden">
+        <div class="g2" style="gap:12px">
+          <div>
+            <div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:8px">CONTRAINDICACIONES ABSOLUTAS</div>
+            <div class="small" style="margin-bottom:3px">🔴 Rechazo del paciente</div>
+            <div class="small" style="margin-bottom:3px">🔴 Infección en sitio de punción</div>
+            <div class="small" style="margin-bottom:3px">🔴 Alergia documentada al AL</div>
+            <div class="small" style="margin-bottom:3px">🔴 Coagulopatía severa no corregida (INR &gt;1.5, Plt &lt;50k para neuroaxial)</div>
+            <div class="small" style="margin-bottom:3px">🔴 Hipovolemia severa no corregida (neuroaxial)</div>
+            <div class="small">🔴 HTA intracraneal (bloqueo espinal)</div>
+          </div>
+          <div>
+            <div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:8px">CONSIDERACIONES ESPECIALES</div>
+            <div class="small" style="margin-bottom:3px">🟡 <strong>Embarazo:</strong> evitar adrenalina en altas dosis (vasoconstricción uteroplacentaria)</div>
+            <div class="small" style="margin-bottom:3px">🟡 <strong>Neonatal:</strong> dosis reducidas estrictamente; menor unión proteínas → mayor fracción libre</div>
+            <div class="small" style="margin-bottom:3px">🟡 <strong>Pediátrico:</strong> cuidado con prilocaína (metahemoglobinemia)</div>
+            <div class="small" style="margin-bottom:3px">🟡 <strong>Hepático:</strong> ↑ vida media amino-amidas; reducir dosis</div>
+            <div class="small" style="margin-bottom:3px">🟡 <strong>Interescalénico:</strong> CI si neumotórax contralateral, paresia frénica contralateral</div>
+            <div class="small">🟡 <strong>Anticoagulación:</strong> seguir guías ESRA/ASRA 2023 de intervalos según droga</div>
+          </div>
+        </div>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">INTERVALOS ANTICOAGULACIÓN (ESRA 2023 — NEUROAXIAL)</div>
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Antes de punción</th><th>Después de punción</th><th>Retiro catéter</th></tr></thead><tbody>
+          <tr><td class="dn">Enoxaparina profiláctica</td><td>12 h</td><td>4 h</td><td class="dnote">4 h post-retiro → próx. dosis</td></tr>
+          <tr><td class="dn">Enoxaparina terapéutica</td><td>24 h</td><td>4 h</td><td class="dnote">Igual</td></tr>
+          <tr><td class="dn">HNF IV</td><td>4–6 h + TTPA normal</td><td>1 h</td><td class="dnote">2–4 h post-retiro</td></tr>
+          <tr><td class="dn">Rivaroxabán</td><td>22–26 h</td><td>6 h</td><td class="dnote">6 h</td></tr>
+          <tr><td class="dn">Apixabán</td><td>26–30 h</td><td>6 h</td><td class="dnote">6 h</td></tr>
+          <tr><td class="dn">Dabigatrán</td><td>72–96 h (IFG&gt;50)</td><td>6 h</td><td class="dnote">6 h</td></tr>
+          <tr><td class="dn">Clopidogrel</td><td>7 días</td><td>Ninguno</td><td class="dnote">Retiro catéter libre</td></tr>
+          <tr><td class="dn">AAS solo</td><td>Sin restricción</td><td>Ninguno</td><td class="dnote">Libre</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MÓDULO: INSULINA PERIOPERATORIA
+     Protocolo de manejo glucémico intraoperatorio y post-op
+═══════════════════════════════════════════════════════════ -->
+<div id="section-insulina" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="tag tok">CALCULADORA</span>
+      <span class="card-hdr-title">Insulina Perioperatoria — Control Glucémico</span>
+      <span class="tag ti">ADA 2024 · SAMBA 2023 · SDA</span>
+    </div>
+    <div class="card-body">
+
+      <!-- Selector tipo paciente -->
+      <div style="margin-bottom:14px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Tipo de paciente</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="setInsPt('adulto')" id="ins-pt-adulto" class="ins-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid rgba(0,200,255,.3);background:rgba(0,200,255,.08);color:var(--accent);cursor:pointer">ADULTO</button>
+          <button onclick="setInsPt('ped')" id="ins-pt-ped" class="ins-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">PEDIÁTRICO</button>
+          <button onclick="setInsPt('neo')" id="ins-pt-neo" class="ins-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">NEONATAL</button>
+          <button onclick="setInsPt('emb')" id="ins-pt-emb" class="ins-pt-btn" style="font-family:var(--mono);font-size:10px;padding:6px 14px;border-radius:3px;border:1px solid var(--border2);background:var(--bg);color:var(--text3);cursor:pointer">EMBARAZADA</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="tab(this,'ins-calc')">Calculadora</div>
+        <div class="tab" onclick="tab(this,'ins-prot')">Protocolos</div>
+        <div class="tab" onclick="tab(this,'ins-targets')">Objetivos Glucémicos</div>
+      </div>
+
+      <!-- TAB: CALCULADORA -->
+      <div id="ins-calc">
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Glucemia (mg/dL)</div><input class="ci" id="ins-glucemia" type="number" value="180" style="width:100px"></div>
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="ins-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Fase</div>
+              <select class="cs" id="ins-fase">
+                <option value="pre">Preoperatorio</option>
+                <option value="intra" selected>Intraoperatorio</option>
+                <option value="post">Postoperatorio inmediato</option>
+                <option value="uci">UCI / Crítico</option>
+              </select>
+            </div>
+            <div class="cg"><div class="cl">Tipo DM</div>
+              <select class="cs" id="ins-tipo-dm">
+                <option value="dm1">DM tipo 1</option>
+                <option value="dm2" selected>DM tipo 2</option>
+                <option value="gest">DM gestacional</option>
+                <option value="estrés">Hiperglucemia estrés</option>
+                <option value="neo-hipo">Hipoglucemia neonatal</option>
+              </select>
+            </div>
+          </div>
+          <button class="cbtn" onclick="calcInsulina()">Calcular recomendación</button>
+          <div class="cres" id="ins-res" style="display:none"></div>
+        </div>
+
+        <div class="alert i" style="margin-top:12px">
+          <span class="alert-icon">⚠️</span>
+          <div>Glucemia cada <strong>30–60 min intraop</strong> en diabéticos. Cada 15 min si insulina IV en infusión. Hipoglucemia (&lt;70 mg/dL) es más peligrosa que hiperglucemia leve durante anestesia general — síntomas enmascarados.</div>
+        </div>
+      </div>
+
+      <!-- TAB: PROTOCOLOS -->
+      <div id="ins-prot" class="hidden">
+        <div id="ins-prot-content">
+          <!-- Llenado dinámico -->
+          <div class="g2" style="gap:12px;margin-bottom:12px">
+            <div style="background:var(--bg);border:1px solid rgba(0,200,255,.2);border-radius:4px;padding:12px">
+              <div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:8px">ADULTO DM2 — PROTOCOLO INTRAOP</div>
+              <div class="small" style="margin-bottom:3px">• <strong>Objetivo:</strong> 140–180 mg/dL</div>
+              <div class="small" style="margin-bottom:3px">• Suspender ADO noche anterior (metformina 48h antes)</div>
+              <div class="small" style="margin-bottom:3px">• Insulina basal: 50–80% de dosis habitual la noche anterior</div>
+              <div class="small" style="margin-bottom:3px">• Cirugía &lt;2h: solo monitoreo, sin corrección rutinaria si &lt;180</div>
+              <div class="small">• Cirugía &gt;2h o glucemia &gt;180: insulina regular IV infusión</div>
+            </div>
+            <div style="background:var(--bg);border:1px solid rgba(123,97,255,.2);border-radius:4px;padding:12px">
+              <div style="color:var(--accent3);font-family:var(--mono);font-size:10px;margin-bottom:8px">ADULTO DM1 — PROTOCOLO INTRAOP</div>
+              <div class="small" style="margin-bottom:3px">• <strong>Objetivo:</strong> 140–180 mg/dL</div>
+              <div class="small" style="margin-bottom:3px">• NUNCA suspender insulina basal completamente</div>
+              <div class="small" style="margin-bottom:3px">• Insulina basal: 50–80% dosis habitual SC la noche anterior</div>
+              <div class="small" style="margin-bottom:3px">• Solución de glucosa IV si glucemia &lt;100 (250 mL G10% a 100 mL/h)</div>
+              <div class="small">• Bomba insulina: continuar con ajuste de infusión basal (-20%)</div>
+            </div>
+          </div>
+          <div class="g2" style="gap:12px">
+            <div style="background:var(--bg);border:1px solid rgba(255,157,92,.2);border-radius:4px;padding:12px">
+              <div style="color:#ff9d5c;font-family:var(--mono);font-size:10px;margin-bottom:8px">EMBARAZADA — DM GESTACIONAL</div>
+              <div class="small" style="margin-bottom:3px">• <strong>Objetivo estricto:</strong> 70–110 mg/dL (parto normal)</div>
+              <div class="small" style="margin-bottom:3px">• Glucemia cada 1 hora en parto activo</div>
+              <div class="small" style="margin-bottom:3px">• Insulina IV si glucemia &gt;120 mg/dL durante trabajo de parto</div>
+              <div class="small" style="margin-bottom:3px">• Sol. glucosada: mantener glucemia materna &lt;110 → previene hipoglucemia neonatal</div>
+              <div class="small">• Neonato: glucemia a los 30 min, 1h, 2h post-parto</div>
+            </div>
+            <div style="background:var(--bg);border:1px solid rgba(255,107,107,.2);border-radius:4px;padding:12px">
+              <div style="color:var(--neo);font-family:var(--mono);font-size:10px;margin-bottom:8px">NEONATAL — HIPOGLUCEMIA</div>
+              <div class="small" style="margin-bottom:3px">• <strong>Hipoglucemia:</strong> &lt;47 mg/dL RN término, &lt;40 pretérmino</div>
+              <div class="small" style="margin-bottom:3px">• Bolo: <strong>2 mL/kg glucosa 10% IV</strong> en 5 min</div>
+              <div class="small" style="margin-bottom:3px">• Mantenimiento: glucosa IV 6–8 mg/kg/min</div>
+              <div class="small" style="margin-bottom:3px">• NO insulina en neonatos salvo hiperinsulinismo confirmado</div>
+              <div class="small">• Glucemia cada 15 min hasta estabilización</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: OBJETIVOS -->
+      <div id="ins-targets" class="hidden">
+        <table class="tbl"><thead><tr><th>Población</th><th>Target Intraop</th><th>Target UCI/Post-op</th><th>Hipoglucemia (tratar si)</th></tr></thead><tbody>
+          <tr><td class="dn">Adulto general</td><td class="dd">140–180 mg/dL</td><td>140–180 mg/dL</td><td class="dnote">&lt;70 mg/dL</td></tr>
+          <tr><td class="dn">Adulto cirugía cardíaca</td><td class="dd">140–180 mg/dL</td><td>140–180 mg/dL</td><td class="dnote">&lt;70 mg/dL</td></tr>
+          <tr><td class="dn">Adulto neurocirugía</td><td class="dd">140–180 mg/dL</td><td>140–180 mg/dL</td><td class="dnote">&lt;80 mg/dL (mayor riesgo)</td></tr>
+          <tr><td class="dn">UCI (ventilado)</td><td class="dd">—</td><td>140–180 mg/dL</td><td class="dnote">&lt;70 mg/dL</td></tr>
+          <tr><td class="dn">Embarazada (parto)</td><td class="dd">70–110 mg/dL</td><td>70–126 mg/dL</td><td class="dnote">&lt;60 mg/dL</td></tr>
+          <tr><td class="dn">Pediátrico (&gt;2 años)</td><td class="dd">100–180 mg/dL</td><td>100–180 mg/dL</td><td class="dnote">&lt;60 mg/dL</td></tr>
+          <tr><td class="dn">Lactante (1 mes–2 años)</td><td class="dd">80–150 mg/dL</td><td>80–150 mg/dL</td><td class="dnote">&lt;50 mg/dL</td></tr>
+          <tr><td class="dn">Neonatal (&lt;1 mes)</td><td class="dd">47–150 mg/dL</td><td>47–150 mg/dL</td><td class="dnote">&lt;47 mg/dL (término) / &lt;40 (pretérmino)</td></tr>
+        </tbody></table>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div>El control glucémico intensivo (&lt;110 mg/dL) no mejora outcomes vs. control moderado y aumenta riesgo de hipoglucemia severa (NICE-SUGAR trial). El objetivo liberal 140–180 es el estándar actual en la mayoría de pacientes perioperatorios.</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MÓDULO: ÁCIDO-BASE DUAL
+     Análisis Henderson-Hasselbalch + Stewart simultáneo
+═══════════════════════════════════════════════════════════ -->
+<div id="section-acidobase" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="tag tok">ANALIZADOR</span>
+      <span class="card-hdr-title">Análisis Ácido-Base Dual — Henderson & Stewart</span>
+      <span class="tag ti">Fisiopatología · Clínica</span>
+    </div>
+    <div class="card-body">
+
+      <!-- ENTRADA DE DATOS -->
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Gasometría & Electrolitos</div>
+      <div class="cform">
+        <div class="crow">
+          <div class="cg"><div class="cl">pH</div><input class="ci" id="ab-ph" type="number" value="7.35" step="0.01" style="width:80px"></div>
+          <div class="cg"><div class="cl">PaCO₂ (mmHg)</div><input class="ci" id="ab-pco2" type="number" value="40" step="1" style="width:90px"></div>
+          <div class="cg"><div class="cl">PaO₂ (mmHg)</div><input class="ci" id="ab-pao2" type="number" value="90" step="1" style="width:90px"></div>
+          <div class="cg"><div class="cl">HCO₃⁻ (mEq/L)</div><input class="ci" id="ab-hco3" type="number" value="22" step="0.5" style="width:90px"></div>
+        </div>
+        <div class="crow">
+          <div class="cg"><div class="cl">Na⁺ (mEq/L)</div><input class="ci" id="ab-na" type="number" value="140" style="width:90px"></div>
+          <div class="cg"><div class="cl">K⁺ (mEq/L)</div><input class="ci" id="ab-k" type="number" value="4.0" step="0.1" style="width:90px"></div>
+          <div class="cg"><div class="cl">Cl⁻ (mEq/L)</div><input class="ci" id="ab-cl" type="number" value="102" style="width:90px"></div>
+          <div class="cg"><div class="cl">Albúmina (g/dL)</div><input class="ci" id="ab-alb" type="number" value="4.0" step="0.1" style="width:90px"></div>
+          <div class="cg"><div class="cl">Lactato (mmol/L)</div><input class="ci" id="ab-lac" type="number" value="1.0" step="0.1" style="width:90px"></div>
+        </div>
+        <div class="crow">
+          <button class="cbtn" onclick="calcAcidoBase()">Analizar</button>
+          <button onclick="cargarEjemplo(1)" style="background:none;border:1px solid var(--border2);color:var(--text3);padding:8px 14px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:10px">Ej: Acidosis met.</button>
+          <button onclick="cargarEjemplo(2)" style="background:none;border:1px solid var(--border2);color:var(--text3);padding:8px 14px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:10px">Ej: Alcalosis resp.</button>
+          <button onclick="cargarEjemplo(3)" style="background:none;border:1px solid var(--border2);color:var(--text3);padding:8px 14px;border-radius:4px;cursor:pointer;font-family:var(--mono);font-size:10px">Ej: Trastorno mixto</button>
+        </div>
+      </div>
+
+      <div id="ab-resultado" style="display:none;margin-top:16px">
+        <!-- Fila 1: diagnóstico primario -->
+        <div id="ab-diag-banner" style="border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;border:1px solid var(--border2)"></div>
+
+        <!-- Grid de dos modelos -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+
+          <!-- Henderson-Hasselbalch -->
+          <div style="background:var(--bg);border:1px solid rgba(0,200,255,.25);border-radius:4px;padding:14px">
+            <div style="color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:.08em">MODELO HENDERSON-HASSELBALCH</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px;padding:8px;background:rgba(0,200,255,.04);border-radius:3px;border-left:2px solid var(--accent)">
+              pH = pKa + log([HCO₃⁻] / (0.0301 × PaCO₂))<br>
+              pKa = 6.1
+            </div>
+            <div id="hh-result"></div>
+          </div>
+
+          <!-- Stewart -->
+          <div style="background:var(--bg);border:1px solid rgba(0,255,157,.25);border-radius:4px;padding:14px">
+            <div style="color:var(--accent2);font-family:var(--mono);font-size:10px;font-weight:700;margin-bottom:10px;letter-spacing:.08em">MODELO DE STEWART (SID)</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px;padding:8px;background:rgba(0,255,157,.04);border-radius:3px;border-left:2px solid var(--accent2)">
+              SID = (Na⁺+K⁺) − Cl⁻<br>
+              SIDe = 12.2×PaCO₂/(10^(pH−6.1)) + Alb×(0.123×pH−0.631) + Pi×(0.309×pH−0.469)<br>
+              SIG = SID − SIDe
+            </div>
+            <div id="st-result"></div>
+          </div>
+        </div>
+
+        <!-- Síntesis clínica -->
+        <div style="background:var(--surf2);border:1px solid var(--border2);border-radius:4px;padding:14px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--warn);font-weight:700;margin-bottom:10px;letter-spacing:.08em">⚡ SÍNTESIS CLÍNICA UNIFICADA</div>
+          <div id="ab-sintesis"></div>
+        </div>
+
+        <!-- Manejo -->
+        <div id="ab-manejo-box" style="margin-top:12px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:14px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:700;margin-bottom:10px;letter-spacing:.08em">RECOMENDACIONES DE MANEJO</div>
+          <div id="ab-manejo"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- CHAT -->
 <aside class="chat">
   <div class="chat-hdr">
@@ -1832,6 +2217,10 @@ const SEARCH_INDEX = [
   {k:['neuroaxial','raquianestesia','espinal','epidural','bloqueo alto','pdph','cefalea post-punci'],s:'neuroaxial',cat:'Protocolo',label:'Anestesia Neuroaxial'},
   {k:['farmacología','halogenado','cam','cam-awake','sevoflurano','desflurano','isoflurano'],s:'farmaco-av',cat:'Farmacología',label:'Farmacología Avanzada'},
   {k:['efectos adversos','perfiles','complicaciones fármacos','hipnoticos efectos','opioides efectos'],s:'perfiles-ea',cat:'Farmacología',label:'Perfiles Efectos Adversos'},
+  {k:['regional','anestesia regional','bupivacaína volumen','ropivacaína','bloqueo','tap','femoral','interescalénico','espinal','epidural dosis'],s:'regional',cat:'Módulo',label:'Anestesia Regional'},
+  {k:['insulina','glucemia','hiperglucemia','hipoglucemia','diabetes','dm1','dm2','gestacional','glucosa intraop'],s:'insulina',cat:'Módulo',label:'Insulina Perioperatoria'},
+  {k:['acidobase','henderson','stewart','ph','pco2','bicarbonato','anión gap','sid','lactato','acidosis','alcalosis','gasometría'],s:'acidobase',cat:'Módulo',label:'Ácido-Base Dual'},
+
 ];
 
 function liveSearch(q) {
@@ -2302,6 +2691,451 @@ function appendTyping() {
 
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO REGIONAL — Lógica
+// ═══════════════════════════════════════════════════════════
+let regPatient = 'adulto';
+
+const REG_DMAX = {
+  // mg/kg [sin vasoconstr, con adrenalina]
+  'bupi':       [2, 2.5],
+  'levobupi':   [2.5, 3],
+  'ropi':       [3, 4],
+  'lido':       [4.5, 7],
+  'prilo':      [6, 8],
+  'bupi-adre':  [2.5, 2.5],
+  'lido-adre':  [7, 7],
+  'ropi-adre':  [4, 4],
+};
+
+const REG_DMAX_PT = {
+  // factor multiplicador por tipo paciente
+  'adulto': 1.0,
+  'ped':    0.8,
+  'neo':    0.5,
+  'emb':    0.7,
+};
+
+const REG_BANNERS = {
+  adulto: {icon:'👤', color:'var(--accent)', label:'Adulto', txt:'Dosis calculadas sobre peso real. Reducir 20–30% en ancianos, caquexia o deterioro hepático.'},
+  ped:    {icon:'👦', color:'var(--accent3)', label:'Pediátrico', txt:'Usar peso real (máx 40 kg para cálculo). Dosis máximas reducidas 20%. Preferir ropivacaína o bupivacaína a baja concentración. Evitar prilocaína (metahemoglobinemia).'},
+  neo:    {icon:'👶', color:'#ff6b6b', label:'Neonatal', txt:'Dosis máximas reducidas al 50%. Mayor fracción libre (menor unión a proteínas). Monitoreo estricto. Preferir bupivacaína 0.125–0.25% o lidocaína 0.5–1%.'},
+  emb:    {icon:'🤰', color:'#ff9d5c', label:'Embarazada', txt:'Dosis reducidas 30% (mayor sensibilidad, mayor dispersión espinal). Evitar adrenalina en altas dosis. Desplazamiento uterino izquierdo. Control de hipotensión inmediato.'},
+};
+
+const TECNICAS_TBL = {
+  adulto: [
+    {t:'Intratecal', vol:'2–4 mL', drug:'Bupi 0.5% hiper', nota:'L2-L3 o L3-L4. Aguja punta lápiz 25-27G.'},
+    {t:'Epidural lumbar', vol:'15–20 mL', drug:'Ropi 0.5% / Bupi 0.5%', nota:'Dosis prueba 3 mL siempre.'},
+    {t:'Interescalénico', vol:'15–25 mL', drug:'Ropi 0.375–0.5%', nota:'CI: neumotórax contralateral.'},
+    {t:'Supraclavicular', vol:'20–30 mL', drug:'Ropi 0.5% / Bupi 0.375%', nota:'Riesgo neumotórax ~1%.'},
+    {t:'Femoral / Fascia ilíaca', vol:'20–30 mL', drug:'Ropi 0.375%', nota:'Guía ecográfica mandatoria.'},
+    {t:'TAP bilateral', vol:'20–25 mL c/lado', drug:'Bupi/Ropi 0.25%', nota:'Analgesia abdominal T8-L1.'},
+    {t:'Ciático poplíteo', vol:'15–20 mL', drug:'Ropi 0.375–0.5%', nota:'Inicio 15–20 min.'},
+    {t:'Paravertebral torácico', vol:'5 mL/nivel', drug:'Ropi 0.25–0.375%', nota:'Bloqueo unilateral.'},
+    {t:'ESP (Erector spinae)', vol:'20–30 mL', drug:'Ropi 0.25%', nota:'Caudal a apófisis transversa.'},
+    {t:'QLB (Cuadrado lumbar)', vol:'20–25 mL c/lado', drug:'Ropi 0.2–0.25%', nota:'Variantes: QLB1, 2, 3, transmuscular.'},
+  ],
+  ped: [
+    {t:'Caudal', vol:'0.5–1.5 mL/kg', drug:'Bupi 0.2–0.25%', nota:'Volumen para nivel: 0.5=L, 1.0=T10, 1.5=T4'},
+    {t:'Espinal pediátrica', vol:'0.5–1 mg/kg', drug:'Bupi 0.5% hiperbárica', nota:'Neonatos hasta 6 meses: 1 mg/kg.'},
+    {t:'Femoral pediátrico', vol:'0.3–0.5 mL/kg (max 10 mL)', drug:'Ropi 0.2%', nota:'Guía eco. Máx 10 mL.'},
+    {t:'TAP pediátrico', vol:'0.3 mL/kg c/lado', drug:'Bupi 0.25%', nota:'Cirugía abdominal infraumbilical.'},
+    {t:'Interescalénico (>6 años)', vol:'0.2–0.3 mL/kg', drug:'Ropi 0.2%', nota:'Reducir dosis. Paresia frénica relevante.'},
+  ],
+  neo: [
+    {t:'Caudal neonatal', vol:'0.5–1 mL/kg', drug:'Bupi 0.125–0.25%', nota:'Máx 1 mL/kg. Sin adrenalina rutinaria.'},
+    {t:'Espinal neonatal', vol:'0.3–0.5 mg/kg', drug:'Bupi 0.5% isobárica', nota:'Aplica solo en centros especializados.'},
+    {t:'Inguinal (ilioinguinal)', vol:'0.1–0.2 mL/kg', drug:'Bupi 0.125%', nota:'Herniorrafia inguinal.'},
+  ],
+  emb: [
+    {t:'Raquianestesia cesárea', vol:'2.5–3 mL', drug:'Bupi 0.5% hiper + 10–15 mcg fentanilo', nota:'Nivel T4. Tilt izq.'},
+    {t:'Epidural analgesia parto', vol:'10–15 mL bolo', drug:'Bupi 0.1% + fentanilo 2 mcg/mL', nota:'Mant: 6–12 mL/h PCEA.'},
+    {t:'Epidural cesárea urgente', vol:'15–20 mL fraccionado', drug:'Lidocaína 2% + bicarbonato', nota:'Alcalinizar: 1 mL NaHCO3/10 mL Lido.'},
+    {t:'TAP post-cesárea', vol:'20 mL c/lado', drug:'Bupi 0.25% / Ropi 0.25%', nota:'Analgesia post-cesárea hasta 24h.'},
+  ],
+};
+
+function setRegPt(pt) {
+  regPatient = pt;
+  document.querySelectorAll('.reg-pt-btn').forEach(b => {
+    b.style.background = 'var(--bg)';
+    b.style.color = 'var(--text3)';
+    b.style.borderColor = 'var(--border2)';
+  });
+  const colors = {adulto:'var(--accent)',ped:'var(--accent3)',neo:'#ff6b6b',emb:'#ff9d5c'};
+  const bgColors = {adulto:'rgba(0,200,255,.08)',ped:'rgba(123,97,255,.08)',neo:'rgba(255,107,107,.08)',emb:'rgba(255,157,92,.08)'};
+  const bdColors = {adulto:'rgba(0,200,255,.3)',ped:'rgba(123,97,255,.3)',neo:'rgba(255,107,107,.3)',emb:'rgba(255,157,92,.3)'};
+  const btn = document.getElementById('reg-pt-' + pt);
+  if(btn) { btn.style.background = bgColors[pt]; btn.style.color = colors[pt]; btn.style.borderColor = bdColors[pt]; }
+  const b = REG_BANNERS[pt];
+  document.getElementById('reg-banner').style.borderColor = bdColors[pt];
+  document.getElementById('reg-banner').style.background = bgColors[pt];
+  document.getElementById('reg-banner-text').innerHTML = `<strong style="color:${b.color}">${b.icon} ${b.label}:</strong> ${b.txt}`;
+  // Actualizar tabla de técnicas
+  const tbl_cont = document.getElementById('reg-tec-content');
+  if(tbl_cont) {
+    const rows = (TECNICAS_TBL[pt] || TECNICAS_TBL.adulto).map(r =>
+      `<tr><td class="dn">${r.t}</td><td>${r.vol}</td><td class="dd">${r.drug}</td><td class="dnote">${r.nota}</td></tr>`).join('');
+    tbl_cont.innerHTML = `<table class="tbl"><thead><tr><th>Técnica</th><th>Volumen</th><th>Fármaco sugerido</th><th>Notas</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  document.getElementById('reg-res').style.display = 'none';
+}
+
+function calcRegional() {
+  const peso = parseFloat(document.getElementById('reg-peso').value);
+  const drug = document.getElementById('reg-drug').value;
+  const tecnica = document.getElementById('reg-tecnica').value;
+  const concPct = parseFloat(document.getElementById('reg-conc-sel').value);
+  if(!peso || !drug) return;
+
+  const dmax_base = REG_DMAX[drug] || [3, 4];
+  const factor = REG_DMAX_PT[regPatient] || 1;
+  const dmax_mg = (dmax_base[1] * peso * factor).toFixed(0);
+  const dmax_mg_sin = (dmax_base[0] * peso * factor).toFixed(0);
+  const concMgML = concPct * 10;
+  const vol_max = (parseFloat(dmax_mg) / concMgML).toFixed(1);
+  const vol_max_sin = (parseFloat(dmax_mg_sin) / concMgML).toFixed(1);
+
+  const DRUG_NAMES = {
+    'bupi':'Bupivacaína','levobupi':'Levobupivacaína','ropi':'Ropivacaína',
+    'lido':'Lidocaína','prilo':'Prilocaína',
+    'bupi-adre':'Bupivacaína + Adrenalina','lido-adre':'Lidocaína + Adrenalina','ropi-adre':'Ropivacaína + Adrenalina'
+  };
+  const TECN_NAMES = {
+    it:'Intratecal',epidural:'Epidural lumbar',epiduraltor:'Epidural torácica',
+    interesc:'Interescalénico',supracla:'Supraclavicular',infracla:'Infraclavicular',axilar:'Axilar',
+    femoral:'Femoral',fasciailiaca:'Fascia ilíaca',ciatico:'Ciático poplíteo',
+    adductor:'Canal aductor',tap:'TAP bilateral',paravert:'Paravertebral torácico',
+    pecs:'PECS I/II',erector:'Erector spinae (ESP)',qlb:'Cuadrado lumbar (QLB)',
+    plexocerv:'Plexo cervical superficial',mandibular:'N. mandibular'
+  };
+
+  const warnings = {
+    bupi: '⚠️ Mayor cardiotoxicidad. Nunca IV directa. Reversión difícil.',
+    prilo: '⚠️ Riesgo metahemoglobinemia >600 mg. Tratar: azul de metileno 1–2 mg/kg IV.',
+    lido: 'ℹ️ Síndrome cola equina con altas concentraciones intratecales. Usar 0.5–2% solo.',
+  };
+  const warn = drug.startsWith('bupi') ? warnings.bupi : warnings[drug] || '';
+
+  let pt_warn = '';
+  if(regPatient === 'neo') pt_warn = '<div style="color:#ff6b6b;font-size:11px;margin-top:6px">⚠️ NEONATAL: Mayor fracción libre de AL. Monitoreo continuo. Usar volúmenes bajos con mayor precaución.</div>';
+  if(regPatient === 'emb') pt_warn = '<div style="color:#ff9d5c;font-size:11px;margin-top:6px">⚠️ EMBARAZO: Reducción 30% de dosis. Desplazamiento uterino izq. Control PA inmediato post-bloqueo.</div>';
+
+  const html =
+    ri('Fármaco', DRUG_NAMES[drug] || drug) +
+    ri(`Concentración seleccionada (${concPct}%)`, `${concMgML} mg/mL`) +
+    ri('Peso paciente', `${peso} kg`) +
+    ri('Dosis máx. sin vasoconstr.', `${dmax_mg_sin} mg → ${vol_max_sin} mL a ${concPct}%`, 'w') +
+    ri('Dosis máx. CON vasoconstr.', `${dmax_mg} mg → ${vol_max} mL a ${concPct}%`, 'ok') +
+    `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:11px;color:var(--text3)">` +
+    (warn ? `${warn}<br>` : '') + pt_warn +
+    `Concentraciones disponibles: 1 mL de solución al ${concPct}% = ${concMgML} mg de ${DRUG_NAMES[drug] || drug}.</div>`;
+
+  showRes('reg-res', html);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO INSULINA — Lógica
+// ═══════════════════════════════════════════════════════════
+let insPatient = 'adulto';
+
+function setInsPt(pt) {
+  insPatient = pt;
+  document.querySelectorAll('.ins-pt-btn').forEach(b => {
+    b.style.background = 'var(--bg)';
+    b.style.color = 'var(--text3)';
+    b.style.borderColor = 'var(--border2)';
+  });
+  const colors = {adulto:'var(--accent)',ped:'var(--accent3)',neo:'#ff6b6b',emb:'#ff9d5c'};
+  const bgColors = {adulto:'rgba(0,200,255,.08)',ped:'rgba(123,97,255,.08)',neo:'rgba(255,107,107,.08)',emb:'rgba(255,157,92,.08)'};
+  const bdColors = {adulto:'rgba(0,200,255,.3)',ped:'rgba(123,97,255,.3)',neo:'rgba(255,107,107,.3)',emb:'rgba(255,157,92,.3)'};
+  const btn = document.getElementById('ins-pt-' + pt);
+  if(btn) { btn.style.background = bgColors[pt]; btn.style.color = colors[pt]; btn.style.borderColor = bdColors[pt]; }
+  document.getElementById('ins-res').style.display = 'none';
+}
+
+function calcInsulina() {
+  const gluc = parseFloat(document.getElementById('ins-glucemia').value);
+  const peso = parseFloat(document.getElementById('ins-peso').value);
+  const fase = document.getElementById('ins-fase').value;
+  const tipoDM = document.getElementById('ins-tipo-dm').value;
+  if(!gluc || !peso) return;
+
+  let html = '';
+  const pt = insPatient;
+
+  // Neonatal — hipoglucemia
+  if(tipoDM === 'neo-hipo' || pt === 'neo') {
+    const bolo = (peso * 2).toFixed(0);
+    const inf = (peso * 6 / 60).toFixed(2); // mg/kg/min → mL/h G10%
+    if(gluc < 47) {
+      html = `<div style="color:var(--danger);font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:8px">🔴 HIPOGLUCEMIA NEONATAL — TRATAMIENTO INMEDIATO</div>`;
+      html += ri('Glucemia actual', `${gluc} mg/dL — HIPOGLUCEMIA`, 'd');
+      html += ri('Bolo glucosa 10% (2 mL/kg en 5 min)', `${bolo} mL IV`, 'd');
+      html += ri('Infusión mantenimiento GIR 6 mg/kg/min', `Glucosa 10%: ${(peso * 6 * 1440 / 1000 / 10).toFixed(1)} mL/24h`, 'w');
+      html += ri('Repetir glucemia en', '15 min');
+      html += `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ NO insulina en neonatos salvo hiperinsulinismo confirmado por endocrinología. Meta: 47–150 mg/dL.</div>`;
+    } else {
+      html = ri('Glucemia actual', `${gluc} mg/dL — En rango neonatal`, 'ok');
+      html += ri('Acción', 'Sin corrección. Continuar monitoreo cada 1–2 h.');
+      html += ri('Target neonatal', '47–150 mg/dL');
+    }
+    showRes('ins-res', html);
+    return;
+  }
+
+  // Targets por tipo paciente y fase
+  const targets = {
+    adulto: {min:140, max:180},
+    ped:    {min:100, max:180},
+    neo:    {min:47,  max:150},
+    emb:    {min:70,  max:110},
+  };
+  const tg = targets[pt] || targets.adulto;
+
+  // Hipoglucemia — manejo universal
+  if(gluc < 70) {
+    html = `<div style="color:var(--danger);font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:8px">🔴 HIPOGLUCEMIA — TRATAR INMEDIATAMENTE</div>`;
+    html += ri('Glucemia', `${gluc} mg/dL — HIPOGLUCEMIA`, 'd');
+    if(gluc < 40) {
+      html += ri('Bolo G50% (25 g = 50 mL)', 'IV en 3–5 min. Repetir si no hay respuesta en 5 min.', 'd');
+    } else {
+      html += ri('G50%: 0.5 g/kg', `${(peso * 0.5).toFixed(0)} mL de G50%`, 'w');
+      html += ri('Alternativa: G33%', `${(peso * 0.75).toFixed(0)} mL`);
+    }
+    html += ri('Glucemia control', '15 min post-tratamiento');
+    html += ri('Luego', 'Infusión G5–10% para mantener ≥100 mg/dL');
+    html += `<div style="color:var(--text3);font-size:11px;margin-top:8px">⚠️ Suspender toda insulina. Avisar cirujano y anestesiólogo si bajo anestesia general (síntomas enmascarados).</div>`;
+    showRes('ins-res', html);
+    return;
+  }
+
+  // En rango
+  if(gluc >= tg.min && gluc <= tg.max) {
+    html = ri('Glucemia', `${gluc} mg/dL — EN RANGO`, 'ok');
+    html += ri('Target actual', `${tg.min}–${tg.max} mg/dL (${pt})`);
+    html += ri('Acción', 'Sin corrección. Continuar monitoreo.');
+    const intervalo = fase === 'intra' ? '30–60 min intraop' : 'Cada 2–4 h post-op';
+    html += ri('Próximo control', intervalo);
+    showRes('ins-res', html);
+    return;
+  }
+
+  // Hiperglucemia — calcular corrección
+  html = `<div style="color:var(--warn);font-family:var(--mono);font-size:11px;font-weight:700;margin-bottom:8px">🟡 HIPERGLUCEMIA — CORRECCIÓN INDICADA</div>`;
+  html += ri('Glucemia actual', `${gluc} mg/dL`, 'w');
+  html += ri('Target', `${tg.min}–${tg.max} mg/dL`);
+
+  if(pt === 'emb') {
+    // Embarazada: protocolo específico
+    const u_horaria = gluc > 140 ? (gluc > 180 ? 2 : 1) : 0;
+    html += ri('Protocolo embarazada', 'Insulina regular IV infusión');
+    html += ri('Tasa sugerida', `${u_horaria} U/h (ajuste c/1h)`, u_horaria > 0 ? 'w' : 'ok');
+    html += ri('Si glucemia >180', 'Aumentar 0.5–1 U/h. Target estricto: 70–110 mg/dL');
+    html += ri('Preparación', 'Insulina regular 50 U en 50 mL SF = 1 U/mL');
+    html += `<div style="color:var(--text3);font-size:11px;margin-top:8px">ℹ️ Neonato: glucemia a los 30 min, 1h, 2h post-parto si madre hiperglucémica.</div>`;
+  } else if(fase === 'intra') {
+    // Protocolo intraoperatorio adulto/ped
+    const exceso = gluc - tg.max;
+    let tasa = 0;
+    if(gluc <= 200) tasa = 1;
+    else if(gluc <= 250) tasa = 2;
+    else if(gluc <= 300) tasa = 3;
+    else tasa = 4;
+    if(pt === 'ped') tasa = +(tasa * 0.5).toFixed(1);
+    html += ri('Protocolo', fase === 'intra' ? 'Insulina regular IV infusión continua' : 'Corrección IV');
+    html += ri('Tasa inicial sugerida', `${tasa} U/h`, 'w');
+    html += ri('Control glucémico', 'Cada 30–60 min');
+    html += ri('Ajuste', 'Si glucemia sigue >target: ↑0.5–1 U/h. Si cae <120: ↓50% de la tasa.');
+    html += ri('Preparación', 'Insulina regular 50 U en 50 mL SF = 1 U/mL (lineal)');
+    html += ri('Si glucemia <100', 'Suspender insulina + iniciar G5–10% infusión');
+  } else {
+    // Post-op / UCI
+    const tasa = gluc > 250 ? 3 : gluc > 200 ? 2 : 1;
+    html += ri('Protocolo post-op', 'Insulina regular SC según escala deslizante o IV infusión');
+    html += ri('Corrección SC (ultrarrápida)', `${tasa > 1 ? tasa : 0}–${tasa} U SC c/4–6h según glucemia`, 'w');
+    html += ri('UCI: infusión IV', `${tasa} U/h. Ajustar c/1–2h. Target: 140–180.`);
+    html += ri('Preparación IV', 'Insulina regular 50 U en 50 mL SF = 1 U/mL');
+  }
+
+  if(tipoDM === 'dm1') {
+    html += `<div style="color:var(--accent3);font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">⚠️ DM1: NUNCA suspender insulina basal. Continuar bomba o administrar 50–80% de la dosis basal SC.</div>`;
+  }
+
+  showRes('ins-res', html);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO ÁCIDO-BASE DUAL — Lógica
+// ═══════════════════════════════════════════════════════════
+function cargarEjemplo(n) {
+  const ejemplos = {
+    1: {ph:7.28, pco2:32, pao2:88, hco3:14, na:140, k:4.5, cl:110, alb:4.0, lac:4.5},   // acidosis metabólica AG elevado
+    2: {ph:7.52, pco2:28, pao2:95, hco3:22, na:140, k:3.5, cl:102, alb:4.0, lac:1.0},    // alcalosis resp aguda
+    3: {ph:7.31, pco2:50, pao2:70, hco3:24, na:136, k:4.0, cl:108, alb:3.0, lac:2.5},   // acidosis resp + metabólica mixta
+  };
+  const e = ejemplos[n]; if(!e) return;
+  document.getElementById('ab-ph').value = e.ph;
+  document.getElementById('ab-pco2').value = e.pco2;
+  document.getElementById('ab-pao2').value = e.pao2;
+  document.getElementById('ab-hco3').value = e.hco3;
+  document.getElementById('ab-na').value = e.na;
+  document.getElementById('ab-k').value = e.k;
+  document.getElementById('ab-cl').value = e.cl;
+  document.getElementById('ab-alb').value = e.alb;
+  document.getElementById('ab-lac').value = e.lac;
+}
+
+function abItem(label, val, color) {
+  const c = color || 'var(--text)';
+  return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">
+    <span style="color:var(--text2)">${label}</span>
+    <span style="color:${c};font-family:var(--mono);font-weight:700">${val}</span>
+  </div>`;
+}
+
+function calcAcidoBase() {
+  const pH   = parseFloat(document.getElementById('ab-ph').value);
+  const pco2 = parseFloat(document.getElementById('ab-pco2').value);
+  const pao2 = parseFloat(document.getElementById('ab-pao2').value);
+  const hco3 = parseFloat(document.getElementById('ab-hco3').value);
+  const na   = parseFloat(document.getElementById('ab-na').value);
+  const k    = parseFloat(document.getElementById('ab-k').value);
+  const cl   = parseFloat(document.getElementById('ab-cl').value);
+  const alb  = parseFloat(document.getElementById('ab-alb').value);
+  const lac  = parseFloat(document.getElementById('ab-lac').value);
+
+  if([pH,pco2,hco3,na,k,cl].some(isNaN)) return;
+
+  // ── HENDERSON-HASSELBALCH ──
+  const pH_calc = 6.1 + Math.log10(hco3 / (0.0301 * pco2));
+  const disc = Math.abs(pH - pH_calc);
+
+  // Diagnóstico primario
+  let primario = '', comp_esperada = '', comp_real = '', comp_ok = false;
+  let hhDx = '', hhNote = '';
+
+  if(pH < 7.35) {
+    // Acidemia
+    if(hco3 < 22) {
+      primario = 'Acidosis Metabólica';
+      // Compensación respiratoria: Winters: pCO2 esperado = 1.5×HCO3 + 8 ± 2
+      const pco2_esp = 1.5 * hco3 + 8;
+      comp_ok = Math.abs(pco2 - pco2_esp) <= 2;
+      comp_esperada = `pCO₂ = 1.5×HCO₃ + 8 = ${pco2_esp.toFixed(0)} mmHg`;
+      comp_real = `pCO₂ actual: ${pco2} mmHg → ${comp_ok ? '✓ compensación adecuada' : pco2 > pco2_esp+2 ? '↑ Superimpuesta acidosis resp.' : '↓ Alcalosis resp. superpuesta'}`;
+      hhDx = 'Acidosis metabólica con compensación respiratoria';
+    } else {
+      primario = 'Acidosis Respiratoria';
+      // Compensación renal aguda: ΔHCO3 = 0.1×ΔpCO2; crónica: 0.35×ΔpCO2
+      const dpco2 = pco2 - 40;
+      const dhco3_ag = 0.1 * dpco2, dhco3_cr = 0.35 * dpco2;
+      comp_esperada = `HCO₃ esperado: aguda = ${(24 + dhco3_ag).toFixed(0)}, crónica = ${(24 + dhco3_cr).toFixed(0)} mEq/L`;
+      comp_real = `HCO₃ actual: ${hco3} mEq/L`;
+      hhDx = hco3 > 24 + dhco3_cr + 2 ? 'Acidosis resp. crónica + alcalosis metabólica superpuesta' : 'Acidosis respiratoria';
+    }
+  } else if(pH > 7.45) {
+    // Alcalemia
+    if(hco3 > 26) {
+      primario = 'Alcalosis Metabólica';
+      const pco2_esp = 0.7 * hco3 + 21;
+      comp_ok = Math.abs(pco2 - pco2_esp) <= 2;
+      comp_esperada = `pCO₂ esperado = 0.7×HCO₃ + 21 = ${pco2_esp.toFixed(0)} mmHg`;
+      comp_real = `pCO₂ actual: ${pco2} mmHg → ${comp_ok ? '✓ compensación adecuada' : 'Trastorno mixto'}`;
+      hhDx = 'Alcalosis metabólica';
+    } else {
+      primario = 'Alcalosis Respiratoria';
+      const dpco2 = 40 - pco2;
+      comp_esperada = `HCO₃ esperado aguda: ${(24 - 0.2*dpco2).toFixed(0)} / crónica: ${(24 - 0.5*dpco2).toFixed(0)} mEq/L`;
+      comp_real = `HCO₃ actual: ${hco3} mEq/L`;
+      hhDx = 'Alcalosis respiratoria';
+    }
+  } else {
+    primario = 'Trastorno ácido-base normal o compensado';
+    hhDx = 'pH en rango normal. Puede existir trastorno mixto compensado.';
+  }
+
+  // Anión gap y corrección por albúmina
+  const ag = na - (cl + hco3);
+  const alb_normal = 4.0;
+  const ag_corr = ag + 2.5 * (alb_normal - alb);
+  const ag_elevado = ag_corr > 12;
+  const delta_ag = ag_corr - 12;
+  const delta_hco3 = 24 - hco3;
+  const delta_ratio = delta_hco3 !== 0 ? (delta_ag / delta_hco3).toFixed(2) : '∞';
+
+  // ── MODELO DE STEWART ──
+  const SID_aparente = (na + k) - cl;  // simplificado: solo cationes/aniones fuertes medidos
+  const SID_efectivo = 12.2 * pco2 / Math.pow(10, pH - 6.1) + alb * (0.123 * pH - 0.631);
+  const SIG = SID_aparente - SID_efectivo;
+
+  // Interpretación Stewart
+  let st_sid_dx = '';
+  if(SID_aparente < 38) st_sid_dx = '↓ SID → acidosis por dilución, hipercloremica o pérdida de Na⁺';
+  else if(SID_aparente > 44) st_sid_dx = '↑ SID → alcalosis metabólica por hipocloremia o pérdida de Cl⁻';
+  else st_sid_dx = 'SID normal (38–44)';
+
+  let st_sig_dx = '';
+  if(SIG > 5) st_sig_dx = `SIG elevado (${SIG.toFixed(1)}): Aniones no medidos ↑ → lactato, cetonas, uremia, tóxicos`;
+  else if(SIG < -5) st_sig_dx = `SIG negativo (${SIG.toFixed(1)}): Error de medición o paraproteinemias`;
+  else st_sig_dx = `SIG normal (${SIG.toFixed(1)}): Sin aniones no medidos significativos`;
+
+  // ── RENDER ──
+  document.getElementById('ab-resultado').style.display = 'block';
+
+  // Banner diagnóstico
+  const bannerColor = pH < 7.35 ? 'var(--danger)' : pH > 7.45 ? 'var(--warn)' : 'var(--accent2)';
+  const bannerBg = pH < 7.35 ? 'rgba(255,61,61,.07)' : pH > 7.45 ? 'rgba(255,184,0,.07)' : 'rgba(0,255,157,.06)';
+  document.getElementById('ab-diag-banner').style.cssText = `background:${bannerBg};border:1px solid ${bannerColor};border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:13px;font-weight:600;color:${bannerColor}`;
+  document.getElementById('ab-diag-banner').textContent = `⚕ ${primario} | pH ${pH} | pCO₂ ${pco2} | HCO₃ ${hco3} | AG ${ag_corr.toFixed(0)} (corregido)`;
+
+  // Henderson-Hasselbalch
+  document.getElementById('hh-result').innerHTML =
+    abItem('pH calculado (HH)', pH_calc.toFixed(3), Math.abs(pH - pH_calc) < 0.05 ? 'var(--accent2)' : 'var(--warn)') +
+    abItem('pH medido', pH.toString()) +
+    abItem('Discrepancia', disc.toFixed(3), disc < 0.05 ? 'var(--text2)' : 'var(--warn)') +
+    abItem('Anión gap medido', `${ag.toFixed(0)} mEq/L`) +
+    abItem('AG corregido por Alb.', `${ag_corr.toFixed(1)} mEq/L`, ag_elevado ? 'var(--danger)' : 'var(--accent2)') +
+    `<div style="margin-top:8px;font-size:11px;color:var(--text2)">${hhDx}</div>` +
+    (ag_elevado ? `<div style="margin-top:4px;font-size:11px;color:var(--text3)">Δ ratio (AG/ΔHCO₃): ${delta_ratio} — ${parseFloat(delta_ratio)>2?'Alcalosis metabólica subyacente':parseFloat(delta_ratio)<1?'Acidosis no-AG coexiste':'Único trastorno metabólico'}</div>` : '') +
+    `<div style="margin-top:6px;font-size:11px;color:var(--text3);border-top:1px solid var(--border);padding-top:6px">${comp_esperada}<br>${comp_real}</div>`;
+
+  // Stewart
+  document.getElementById('st-result').innerHTML =
+    abItem('SID aparente (Na+K−Cl)', `${SID_aparente.toFixed(1)} mEq/L`, SID_aparente < 38 ? 'var(--danger)' : SID_aparente > 44 ? 'var(--warn)' : 'var(--accent2)') +
+    abItem('SID efectivo', `${SID_efectivo.toFixed(1)} mEq/L`) +
+    abItem('SIG (Strong Ion Gap)', `${SIG.toFixed(1)} mEq/L`, SIG > 5 ? 'var(--danger)' : SIG < -5 ? 'var(--warn)' : 'var(--text2)') +
+    abItem('Lactato', `${lac} mmol/L`, lac > 2 ? 'var(--danger)' : 'var(--text2)') +
+    `<div style="margin-top:8px;font-size:11px;color:var(--text2)">${st_sid_dx}</div>` +
+    `<div style="margin-top:4px;font-size:11px;color:var(--text2)">${st_sig_dx}</div>`;
+
+  // Síntesis
+  let sint = '';
+  if(ag_elevado && SIG > 5) sint += `<div style="color:var(--danger);font-size:12px;margin-bottom:4px">• Ambos modelos coinciden: ANIONES NO MEDIDOS ELEVADOS. Causas: lactato (${lac > 2?'presente':'medir'}), cetonas, uremia, metanol/etilenglicol, salicilatos.</div>`;
+  else if(ag_elevado && SIG <= 5) sint += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• AG elevado sin SIG elevado: posiblemente hiperfosfoatemia o error. Verificar fosfato sérico.</div>`;
+  else if(!ag_elevado && SID_aparente < 38) sint += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Acidosis hiperclorémica (AG normal, SID↓): pérdidas de bicarbonato (diarrea, acidosis tubular) o soluciones hipercloradas (SF 0.9% excesivo).</div>`;
+  else if(!ag_elevado) sint += `<div style="color:var(--text2);font-size:12px;margin-bottom:4px">• AG normal, SID en rango: trastorno compensado o fisiológico.</div>`;
+
+  if(lac > 2) sint += `<div style="color:var(--danger);font-size:12px;margin-bottom:4px">• Lactato ${lac} mmol/L → ${lac > 4 ? 'HIPOPERFUSIÓN SIGNIFICATIVA — Lactato tipo A' : 'Elevación moderada — descartar hipoperfusión regional, insuf. hepática'}.</div>`;
+  if(alb < 3.5) sint += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Hipoalbuminemia (${alb} g/dL): efecto alcalinizante Stewart (↓Atot). Puede enmascarar acidosis metabólica — el AG corregido es mandatorio.</div>`;
+
+  document.getElementById('ab-sintesis').innerHTML = sint || `<span style="color:var(--text2);font-size:12px">Sin hallazgos críticos adicionales. Ver modelos individuales para detalle.</span>`;
+
+  // Manejo
+  let man = '';
+  if(pH < 7.2) man += `<div style="color:var(--danger);font-size:12px;margin-bottom:4px">🔴 pH &lt;7.20 — Acidemia severa: considerar bicarbonato si acidosis NO-AG y pH &lt;7.1. Ventilación mecánica si insuficiencia resp.</div>`;
+  if(ag_elevado && lac > 2) man += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Tratar causa raíz de hipoperfusión (volumen, vasopresores). Medir lactato serial c/2h.</div>`;
+  if(SID_aparente < 36 && !ag_elevado) man += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Acidosis hiperclorémica: cambiar a soluciones balanceadas (Ringer lactato/PlasmaLyte). Bicarbonato si pH &lt;7.1.</div>`;
+  if(pco2 > 50) man += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Hipercapnia: optimizar ventilación (↑FR o VT). Si bajo anestesia: verificar circuito, capnógrafo, cal sodada.</div>`;
+  if(pco2 < 30) man += `<div style="color:var(--accent);font-size:12px;margin-bottom:4px">• Hipocapnia: ↓FR o ↑espacio muerto. En neurocirugía: evaluar si intencional (↓PIC). En embarazo: fisiológico (pCO₂ normal=28–32).</div>`;
+  if(hco3 > 28) man += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Alcalosis metabólica: evaluar hipocloremia (ClNa IV), hipopotasemia (reponer K⁺), uso de diuréticos. Acetazolamida si refractaria.</div>`;
+  if(!man) man = `<div style="color:var(--accent2);font-size:12px">Trastorno compensado o leve. Observación y monitoreo. Repetir gasometría en 1–2h si evolución clínica cambia.</div>`;
+  document.getElementById('ab-manejo').innerHTML = man;
+}
+
 </script>
 </body>
 </html>
