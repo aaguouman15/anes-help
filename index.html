@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ANEST·OR v3.2</title>
+<title>ANEST·OR v3.3</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -16,8 +16,18 @@
   --sidebar-w:230px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;display:flex;flex-direction:column}
+html{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;display:flex;flex-direction:column;min-height:100%;overflow-x:hidden}
+
+/* HAMBURGER / MENU OVERLAY */
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:299;display:none;backdrop-filter:blur(2px)}
+.menu-overlay.open{display:block}
+.hamburger-btn{background:none;border:1px solid var(--border2);color:var(--text2);border-radius:4px;width:34px;height:34px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:all .15s;flex-shrink:0}
+.hamburger-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hamburger-btn span{display:block;width:16px;height:1.5px;background:currentColor;transition:all .2s;border-radius:2px}
+.hamburger-btn.open span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+.hamburger-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger-btn.open span:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
 
 /* HEADER */
 header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:14px;z-index:100;flex-shrink:0}
@@ -42,10 +52,11 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .mode-badge.ped{background:rgba(123,97,255,.12);color:var(--accent3);border-color:rgba(123,97,255,.25)}
 
 /* LAYOUT */
-.app{display:flex;flex:1;overflow:hidden}
+.app{display:flex;flex:1;min-height:0;position:relative}
 
-/* SIDEBAR */
-.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surf);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;flex-shrink:0}
+/* SIDEBAR — now a slide-in drawer */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surf);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:300;transform:translateX(-100%);transition:transform .22s cubic-bezier(.4,0,.2,1);padding-top:54px}
+.sidebar.open{transform:translateX(0)}
 .sidebar::-webkit-scrollbar{width:3px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
 .sl{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;padding:10px 14px 3px}
@@ -58,7 +69,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .si{font-size:13px}
 
 /* MAIN */
-.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0;-webkit-overflow-scrolling:touch}
 .main::-webkit-scrollbar{width:5px}
 .main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
@@ -198,12 +209,21 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .bp{background:rgba(123,97,255,.15);color:var(--accent3)}
 
 @media(max-width:900px){.chat{display:none}}
-@media(max-width:640px){.sidebar{width:180px;min-width:180px}}
+@media(max-width:640px){
+  .main{padding:12px}
+  .g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .crow{flex-direction:column;align-items:flex-start}
+  .ci{width:100%!important}
+}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">ANEST<span style="color:var(--text3)">·</span>OR <em>v3.2</em></div>
+  <button class="hamburger-btn" id="hambBtn" onclick="toggleMenu()" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo">ANEST<span style="color:var(--text3)">·</span>OR <em>v3.3</em></div>
   <div class="search-wrap">
     <input type="text" id="searchInput" placeholder="hipotensión · anafilaxia · propofol 70kg · tubo ET 5 años · TCI Marsh ..." autocomplete="off" oninput="liveSearch(this.value)" onkeydown="searchKey(event)">
     <span class="search-icon">⌕</span>
@@ -216,6 +236,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   </div>
 </header>
 
+<div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
 <div class="app">
 <!-- SIDEBAR -->
 <nav class="sidebar">
@@ -239,6 +260,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   <button class="sb" onclick="show('calc-medio')" id="btn-calc-medio"><span class="si">⚗️</span>Medio Interno</button>
   <button class="sb" onclick="show('calc-tiva')" id="btn-calc-tiva"><span class="si">📈</span>TIVA/TCI Avanzado</button>
   <button class="sb" onclick="show('calc-vent')" id="btn-calc-vent"><span class="si">🫁</span>Ventilación</button>
+  <button class="sb" onclick="show('param-vent')" id="btn-param-vent"><span class="si">📉</span>Parámetros Vent.</button>
 
   <div class="sl">Monitoreo</div>
   <button class="sb" onclick="show('pocus')" id="btn-pocus"><span class="si">🔬</span>POCUS / Echo</button>
@@ -262,6 +284,8 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   <button class="sb" onclick="show('regional')" id="btn-regional"><span class="si">💉</span>Anest. Regional</button>
   <button class="sb" onclick="show('insulina')" id="btn-insulina"><span class="si">🩸</span>Insulina Periop.</button>
   <button class="sb" onclick="show('acidobase')" id="btn-acidobase"><span class="si">⚗️</span>Ácido-Base Dual</button>
+  <div class="sl">Cardiovascular</div>
+  <button class="sb w" onclick="show('cv-checklist')" id="btn-cv-checklist"><span class="si">❤️</span>Cirugía Cardíaca</button>
 
 </nav>
 
@@ -285,12 +309,14 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
     <div class="qc in" onclick="show('hemodin')"><div class="qc-icon">📊</div><div class="qc-title">Monit. Hemodinámico</div><div class="qc-sub">PAC · PiCCO · VVS</div></div>
     <div class="qc pe" onclick="show('ped-intro')"><div class="qc-icon">👶</div><div class="qc-title">Pediatría</div><div class="qc-sub">Dosis · VA · RCP · Vent</div></div>
     <div class="qc ca" onclick="show('calc-fluidos')"><div class="qc-icon">💧</div><div class="qc-title">Fluidos/Hemoderivados</div><div class="qc-sub">VSC · Transfusión</div></div>
-    <div class="qc ca" onclick="show('calc-medio')"><div class="qc-icon">⚗️</div><div class="qc-title">Medio Interno</div><div class="qc-sub">HCO₃ · Na · K · Ca</div></div>
+    <div class="qc ca" onclick="show('calc-medio')"><div class="qc-icon">⚗️</div><div class="qc-title">Medio Interno</div><div class="qc-sub">HCO₃ · Na · K · Ca · Glucosa</div></div>
+    <div class="qc in" onclick="show('param-vent')"><div class="qc-icon">📉</div><div class="qc-title">Parámetros Vent.</div><div class="qc-sub">Ppico · Pmeseta · Driving P · Capno</div></div>
     <div class="qc in" onclick="show('checklist')"><div class="qc-icon">✅</div><div class="qc-title">Check Inducción</div><div class="qc-sub">WHO · WFSA</div></div>
     <div class="qc in" onclick="show('farmaco-av')"><div class="qc-icon">🧬</div><div class="qc-title">Farmacología Avanz.</div><div class="qc-sub">FK/FD · Interacciones</div></div>
     <div class="qc in" onclick="show('regional')"><div class="qc-icon">💉</div><div class="qc-title">Anest. Regional</div><div class="qc-sub">Bupivacaína · Ropivacaína · Vol. máx.</div></div>
     <div class="qc in" onclick="show('insulina')"><div class="qc-icon">🩸</div><div class="qc-title">Insulina Periop.</div><div class="qc-sub">Glucemia · Corrección · Neo./Ped./Emb.</div></div>
     <div class="qc in" onclick="show('acidobase')"><div class="qc-icon">⚗️</div><div class="qc-title">Ácido-Base Dual</div><div class="qc-sub">Henderson-Hasselbalch · Stewart · Síntesis</div></div>
+    <div class="qc wa" onclick="show('cv-checklist')"><div class="qc-icon">❤️</div><div class="qc-title">Cirugía Cardíaca</div><div class="qc-sub">CEC · Cardioplejía · MICS · Bypass</div></div>
   </div>
   <div class="alert i"><span class="alert-icon">🤖</span><div>Panel derecho → <strong>Consulta IA</strong> en lenguaje natural: <em style="color:var(--text2)">"Paciente 70kg hipotensión post-inducción"</em> · <em style="color:var(--text2)">"Dosis sugammadex bloqueo profundo"</em> · <em style="color:var(--text2)">"Niño 18kg, ISR"</em></div></div>
 </div>
@@ -474,41 +500,178 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 <!-- VAD -->
 <div id="section-vad" class="hidden fade">
   <div class="card">
-    <div class="card-hdr"><span class="tag tw">VÍA AÉREA</span><span class="card-hdr-title">Vía Aérea Difícil</span><span class="tag ti">DAS 2022 / ASA 2022</span></div>
+    <div class="card-hdr"><span class="tag tw">VÍA AÉREA</span><span class="card-hdr-title">Vía Aérea Difícil</span><span class="tag tok">DAS 2025</span><span class="tag ti">BJA 2026;136:283</span></div>
     <div class="card-body">
-      <div class="tabs"><div class="tab active" onclick="tab(this,'vad-p')">VAD Prevista</div><div class="tab" onclick="tab(this,'vad-np')">VAD No Prevista</div><div class="tab" onclick="tab(this,'vad-cico')">CICO</div><div class="tab" onclick="tab(this,'vad-ev')">Evaluación</div></div>
-      <div id="vad-p">
-        <ul class="steps">
-          <li class="step"><div class="sn w">1</div><div class="st"><strong>Preparación:</strong> Pre-ox ≥3 min · Equipo alternativo disponible · Cirujano avisado</div></li>
-          <li class="step"><div class="sn w">2</div><div class="st"><strong>Intubación vigil</strong> (fibroscopio/VL) si VAD severa — conservar respiración espontánea</div></li>
-          <li class="step"><div class="sn w">3</div><div class="st"><strong>Inducción inhalatoria</strong> (sevoflurano) si obstrucción parcial</div></li>
-          <li class="step"><div class="sn w">4</div><div class="st"><strong>Dispositivos rescue preparados:</strong> VL · DMG-I · Kit cricotirotomía</div></li>
-        </ul>
+
+      <!-- DAS 2025 badge -->
+      <div class="alert p" style="margin-bottom:12px"><span class="alert-icon">🆕</span><div><strong>DAS 2025 — Cambio de paradigma:</strong> el foco ya no es "manejar el fracaso" sino <strong>optimizar el éxito en el primer intento</strong>. La oxigenación continua es el principio organizador de todo el algoritmo. Videolaringoscopio como primera línea (no de rescate). <em style="color:var(--text3)">Ahmad et al. BJA 2026;136:283–307.</em></div></div>
+
+      <div class="tabs" style="flex-wrap:wrap">
+        <div class="tab active" onclick="tab(this,'vad-np')">Plan A→D (No Prevista)</div>
+        <div class="tab" onclick="tab(this,'vad-p')">VAD Prevista</div>
+        <div class="tab" onclick="tab(this,'vad-cico')">🚨 eFONA / CICO</div>
+        <div class="tab" onclick="tab(this,'vad-das25')">📋 Cambios DAS 2025</div>
+        <div class="tab" onclick="tab(this,'vad-ev')">Evaluación</div>
       </div>
-      <div id="vad-np" class="hidden">
-        <div class="alert w"><span class="alert-icon">⚠️</span><strong>Máximo 3+1 intentos totales. Mantener oxigenación en todo momento.</strong></div>
-        <ul class="steps">
-          <li class="step"><div class="sn w">A</div><div class="st"><strong>Plan A:</strong> Laringoscopio directo optimizado (BURP + bougie). Falla → Plan B</div></li>
-          <li class="step"><div class="sn w">B</div><div class="st"><strong>Plan B:</strong> Videolaringoscopio. 2 intentos máx → Plan C. Oxigenar entre intentos.</div></li>
-          <li class="step"><div class="sn w">C</div><div class="st"><strong>Plan C:</strong> DSG (LMA ProSeal/Supreme/i-gel) · Ventilación mascarilla · <strong>DESPERTAR</strong> si no urgente</div></li>
-          <li class="step"><div class="sn d">D</div><div class="st"><strong>Plan D (CICO):</strong> Cricotirotomía de emergencia. NO DEMORAR.</div></li>
-        </ul>
+
+      <!-- PLAN A→D (hoja principal) -->
+      <div id="vad-np">
+        <div class="alert w"><span class="alert-icon">⚠️</span><div><strong>Máximo 3+1 intentos totales — es un límite duro, NO una cuota.</strong> No esperar a agotar intentos si la oxigenación cae. Oxigenar ENTRE CADA intento sin excepción.</div></div>
+
+        <!-- PLAN A -->
+        <div style="background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.2);border-radius:4px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:6px">▶ PLAN A — INTUBACIÓN (optimizar el primer intento)</div>
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn b">1</div><div class="st"><strong>Pre-oxigenación:</strong> FiO₂ 1.0 ≥3 min · mascarilla reservorio o HFNO 30–60 L/min · posición cabeza 20–30°</div></li>
+            <li class="step"><div class="sn b">2</div><div class="st"><strong>Oxigenación apneica continua:</strong> <span class="drug">HFNO o cánula nasal 15 L/min</span> durante todo el intento — NO interrumpir entre laringoscopias</div></li>
+            <li class="step"><div class="sn b">3</div><div class="st"><strong>Videolaringoscopio de primera línea</strong> (ya no es rescate). VL estándar o angulado según anatomía. Bougie disponible siempre.</div></li>
+            <li class="step"><div class="sn b">4</div><div class="st"><strong>Optimizar posición:</strong> oído alineado con escotadura esternal · BURP · relajación NM completa (rocuronio 1.2 mg/kg o SCC)</div></li>
+            <li class="step"><div class="sn b">5</div><div class="st">Confirmar con <strong>capnografía de onda</strong> · 3 intentos máx (incluye cambio de operador/dispositivo) → Plan B</div></li>
+          </ul>
+        </div>
+
+        <!-- PLAN B -->
+        <div style="background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.18);border-radius:4px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-bottom:6px">▶ PLAN B — DISPOSITIVO SUPRAGLÓTICO (oxigenación + pausa estratégica)</div>
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn w">1</div><div class="st"><strong>Insertar DSG-II</strong> (LMA Supreme / i-gel / ProSeal) · 2 intentos máx · confirmar con capnografía</div></li>
+            <li class="step"><div class="sn w">2</div><div class="st">El DSG en 2025 NO es señal de fracaso: es herramienta de <strong>oxigenación activa y pausa cognitiva</strong> — úsalo para recuperar SpO₂, llamar ayuda y planificar</div></li>
+            <li class="step"><div class="sn w">3</div><div class="st">Si DSG funciona → considerar <strong>intubación a través del DSG</strong> con fibroscopio flexible · Despertar si no urgente</div></li>
+            <li class="step"><div class="sn w">4</div><div class="st">Si DSG falla o ventilación insuficiente → <strong>Plan C inmediato</strong></div></li>
+          </ul>
+        </div>
+
+        <!-- PLAN C -->
+        <div style="background:rgba(255,61,61,.04);border:1px solid rgba(255,61,61,.2);border-radius:4px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-bottom:6px">▶ PLAN C — VENTILACIÓN CON MASCARILLA (tiempo limitado)</div>
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn d">1</div><div class="st">Último intento de ventilación con mascarilla a 2 manos · cánula de Guedel · posición óptima</div></li>
+            <li class="step"><div class="sn d">2</div><div class="st"><strong style="color:var(--danger)">Si estás en Plan C → prepara eFONA AHORA (paralelo).</strong> DAS 2025: "despertar" no siempre es opción real en paciente fisiológicamente comprometido</div></li>
+            <li class="step"><div class="sn d">3</div><div class="st">Si ventilación adecuada → recuperar SpO₂, llamar cirugía, evaluar despertar con seguridad</div></li>
+          </ul>
+        </div>
+
+        <!-- PLAN D -->
+        <div style="background:rgba(255,61,61,.08);border:1px solid rgba(255,61,61,.35);border-radius:4px;padding:10px 12px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--danger);margin-bottom:6px">▶ PLAN D — eFONA (emergencia front-of-neck airway)</div>
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn d">!</div><div class="st"><strong>DECLARAR en voz alta: "CICO — inicio eFONA".</strong> Actuar SIN DEMORA — la cultura de "un intento más" mata.</div></li>
+            <li class="step"><div class="sn d">1</div><div class="st"><strong>Técnica estándar DAS 2025: escalpelo–bougie–tubo.</strong> Incisión <strong>VERTICAL en piel</strong> (mayor seguridad) → horizontal en membrana cricotiroidea → bougie → tubo 6.0 cuffado</div></li>
+            <li class="step"><div class="sn d">2</div><div class="st">Confirmar con capnografía · inflar cuff · ventilar · llamar cirugía para asegurar vía definitiva</div></li>
+          </ul>
+        </div>
       </div>
+
+      <!-- VAD PREVISTA -->
+      <div id="vad-p" class="hidden">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div>DAS 2025 refuerza la evaluación preoperatoria exhaustiva y la optimización fisiológica antes de cualquier maniobra. La "vía aérea difícil" ahora incluye explícitamente la <strong>VAD fisiológica</strong> (hipoxemia, acidosis, hipotensión).</div></div>
+        <ul class="steps">
+          <li class="step"><div class="sn w">1</div><div class="st"><strong>Evaluación:</strong> anatomía + fisiología (SpO₂ basal, Hb, pH, PAM) · POCUS gástrico · historia previa de VAD</div></li>
+          <li class="step"><div class="sn w">2</div><div class="st"><strong>Optimización previa:</strong> corregir hipoxemia, hipovolemia, acidosis antes de inducir cuando sea posible</div></li>
+          <li class="step"><div class="sn w">3</div><div class="st"><strong>Intubación vigil preferida</strong> (fibroscopio / VL con anestesia tópica) si VAD severa o fisiológicamente comprometido — conservar ventilación espontánea</div></li>
+          <li class="step"><div class="sn w">4</div><div class="st"><strong>Inducción inhalatoria</strong> (sevoflurano) si obstrucción parcial y cooperación · alternativa: ketamina conservando tono muscular</div></li>
+          <li class="step"><div class="sn w">5</div><div class="st"><strong>Equipo completo listo:</strong> VL + fibroscopio + DSG-II + kit eFONA + cirujano avisado · NO improvisar</div></li>
+        </ul>
+        <div class="alert w" style="margin-top:8px"><span class="alert-icon">💡</span><div><strong>VAD fisiológica (nuevo concepto DAS 2025):</strong> el paciente hipoxémico/acidótico/hipotenso NO tolerará apnea prolongada aunque la anatomía sea favorable. Pre-oxigenar hasta SpO₂ &gt;95% antes de intubar. HFNO si disponible.</div></div>
+      </div>
+
+      <!-- eFONA / CICO -->
       <div id="vad-cico" class="hidden">
-        <div class="alert d"><span class="alert-icon">🚨</span><strong>CICO — Can't Intubate Can't Oxygenate. DECLARAR EN VOZ ALTA. LLAMAR CIRUGÍA.</strong></div>
+        <div class="alert d"><span class="alert-icon">🚨</span><strong>CICO — Can't Intubate Can't Oxygenate. DECLARAR EN VOZ ALTA. INICIAR eFONA SIN DEMORA.</strong></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">TÉCNICA eFONA — ESCALPELO-BOUGIE-TUBO (DAS 2025 estándar)</div>
         <ul class="steps">
-          <li class="step"><div class="sn d">1</div><div class="st"><strong>Declarar CICO</strong> en voz alta</div></li>
-          <li class="step"><div class="sn d">2</div><div class="st"><strong>Último intento LMA 5</strong>. Si SpO₂ cae rápido → no perder tiempo</div></li>
-          <li class="step"><div class="sn d">3</div><div class="st"><strong>CRICOTIROTOMÍA QUIRÚRGICA:</strong> Incisión vertical piel → horizontal membrana cricotiroidea → tubo 6.0 cuffado. <strong>Estándar DAS 2022.</strong></div></li>
+          <li class="step"><div class="sn d">1</div><div class="st"><strong>Declarar CICO en voz alta.</strong> Toda la sala debe saberlo. Rol del asistente: preparar kit eFONA y llamar cirugía.</div></li>
+          <li class="step"><div class="sn d">2</div><div class="st"><strong>Palpar membrana cricotiroidea.</strong> Si no palpa: técnica FONA táctil (piel → laringe → membrana). Hiperextender cuello.</div></li>
+          <li class="step"><div class="sn d">3</div><div class="st"><strong>Incisión VERTICAL en piel</strong> (DAS 2025 — reemplaza la horizontal) de ~4 cm sobre la membrana → mayor seguridad en anatomía no palpable</div></li>
+          <li class="step"><div class="sn d">4</div><div class="st"><strong>Incisión horizontal en membrana cricotiroidea</strong> (mano estabiliza laringe) → insertar bougie →  avanzar distalmente</div></li>
+          <li class="step"><div class="sn d">5</div><div class="st"><strong>Tubo 6.0 cuffado</strong> sobre bougie → inflar cuff → confirmar capnografía · ventilación bilateral</div></li>
+          <li class="step"><div class="sn d">6</div><div class="st">Llamar cirugía para <strong>traqueostomía definitiva</strong> si se mantiene la vía aérea quirúrgica</div></li>
         </ul>
+        <div class="alert w" style="margin-top:10px"><span class="alert-icon">🔑</span><div><strong>Cambio clave DAS 2025:</strong> incisión <em>vertical</em> en piel como estándar (reemplaza la horizontal de 2015). Mayor margen de seguridad cuando la membrana no se palpa claramente. Entrenar UNA técnica y dominarla.</div></div>
       </div>
+
+      <!-- CAMBIOS DAS 2025 -->
+      <div id="vad-das25" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:10px">CAMBIOS PRINCIPALES DAS 2025 vs DAS 2015</div>
+        <table class="tbl"><thead><tr><th>Dominio</th><th>DAS 2015</th><th>DAS 2025 ★ NUEVO</th></tr></thead><tbody>
+          <tr>
+            <td><strong>Filosofía central</strong></td>
+            <td class="dnote">Manejo del fracaso (rescue-based)</td>
+            <td style="color:var(--accent2)">Optimización del primer intento (success-based)</td>
+          </tr>
+          <tr>
+            <td><strong>Videolaringoscopio</strong></td>
+            <td class="dnote">Rescate / alternativa</td>
+            <td style="color:var(--accent2)">Primera línea de rutina en intubación bajo anestesia</td>
+          </tr>
+          <tr>
+            <td><strong>Oxigenación apneica</strong></td>
+            <td class="dnote">Recomendada (HFNO)</td>
+            <td style="color:var(--accent2)">Obligatoria continua durante todos los intentos (nunca interrumpir flujo O₂)</td>
+          </tr>
+          <tr>
+            <td><strong>Relajación NM</strong></td>
+            <td class="dnote">Variable / tardía</td>
+            <td style="color:var(--accent2)">Precoz — relajación completa mejora laringoscopia y reduce trauma</td>
+          </tr>
+          <tr>
+            <td><strong>DSG supraglótico (Plan B)</strong></td>
+            <td class="dnote">Rescate y oxigenación</td>
+            <td style="color:var(--accent2)">Pausa estratégica + puente a intubación con fibroscopio a través del DSG</td>
+          </tr>
+          <tr>
+            <td><strong>eFONA — incisión</strong></td>
+            <td class="dnote">Incisión horizontal en membrana</td>
+            <td style="color:var(--accent2)">Incisión VERTICAL en piel + horizontal en membrana (mayor seguridad)</td>
+          </tr>
+          <tr>
+            <td><strong>"Despertar al paciente"</strong></td>
+            <td class="dnote">Siempre una opción en Plan C</td>
+            <td style="color:var(--accent2)">Reconoce que NO siempre es posible (paciente fisiológicamente inestable)</td>
+          </tr>
+          <tr>
+            <td><strong>VAD fisiológica</strong></td>
+            <td class="dnote">No mencionada explícitamente</td>
+            <td style="color:var(--accent2)">Nuevo concepto: hipoxemia, acidosis, hipotensión ↑ riesgo independiente de anatomía</td>
+          </tr>
+          <tr>
+            <td><strong>Factores humanos</strong></td>
+            <td class="dnote">Apéndice</td>
+            <td style="color:var(--accent2)">Integrados en cada plan: modelo mental compartido, liderazgo, "stop-and-think" explícito</td>
+          </tr>
+          <tr>
+            <td><strong>POCUS</strong></td>
+            <td class="dnote">No mencionado</td>
+            <td style="color:var(--accent2)">Endosado para evaluación de VA y contenido gástrico preoperatorio</td>
+          </tr>
+          <tr>
+            <td><strong>3+1 regla</strong></td>
+            <td class="dnote">Límite de intentos</td>
+            <td style="color:var(--accent2)">Sigue vigente pero como límite duro, NO como objetivo. Progresar antes si hay deterioro.</td>
+          </tr>
+        </tbody></table>
+        <div class="alert i" style="margin-top:10px"><span class="alert-icon">📄</span><div>Ahmad I et al. <em>Difficult Airway Society 2025 guidelines for management of unanticipated difficult tracheal intubation in adults.</em> BJA 2026;136:283–307. 1241 papers revisados · Delphi 3 rondas · 65 recomendaciones.</div></div>
+      </div>
+
+      <!-- EVALUACION -->
       <div id="vad-ev" class="hidden">
+        <div class="alert i" style="margin-bottom:10px"><span class="alert-icon">💡</span><div>DAS 2025 amplía la evaluación más allá de la anatomía: evaluar también <strong>reserva fisiológica</strong> (SpO₂ basal, Hb, PA, pH). POCUS gástrico endosado para riesgo de aspiración.</div></div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">PREDICTORES ANATÓMICOS DE VAD</div>
         <table class="tbl"><thead><tr><th>Test</th><th>Criterio VAD</th><th>Sens</th><th>Esp</th></tr></thead><tbody>
           <tr><td>Mallampati</td><td>III–IV</td><td>35%</td><td>90%</td></tr>
           <tr><td>Apertura oral</td><td>&lt;3 cm (2 dedos)</td><td>—</td><td>—</td></tr>
           <tr><td>Distancia TM</td><td>&lt;6 cm</td><td>—</td><td>—</td></tr>
           <tr><td>ULBT</td><td>Clase III</td><td>50%</td><td>85%</td></tr>
           <tr><td>El-Ganzouri</td><td>≥4 pts</td><td>70%</td><td>89%</td></tr>
+          <tr><td>Cuello corto / restringido</td><td>Ext. &lt;35°</td><td>—</td><td>—</td></tr>
+        </tbody></table>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">VAD FISIOLÓGICA — NUEVO CONCEPTO DAS 2025</div>
+        <table class="tbl"><thead><tr><th>Factor fisiológico</th><th>Impacto</th><th>Optimización</th></tr></thead><tbody>
+          <tr><td class="dn">Hipoxemia (SpO₂ &lt;95%)</td><td class="dnote">↓↓ tiempo de apnea segura</td><td class="dnote">HFNO + posición · Pre-ox hasta SpO₂ &gt;95%</td></tr>
+          <tr><td class="dn">Hipotensión (PAM &lt;65)</td><td class="dnote">↓ tolerancia a inducción</td><td class="dnote">Volumen + vasopresor antes de inducir</td></tr>
+          <tr><td class="dn">Acidosis (pH &lt;7.2)</td><td class="dnote">↑ requerimientos FR post-IOT</td><td class="dnote">Bicarbonato si acidosis metabólica severa</td></tr>
+          <tr><td class="dn">Anemia (Hb &lt;8)</td><td class="dnote">↓ reserva O₂ total</td><td class="dnote">Transfundir si tiempo permite</td></tr>
         </tbody></table>
       </div>
     </div>
@@ -711,13 +874,16 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 <!-- MEDIO INTERNO -->
 <div id="section-calc-medio" class="hidden fade">
   <div class="card">
-    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Medio Interno — HCO₃, Na⁺, K⁺, Ca²⁺</span></div>
+    <div class="card-hdr"><span class="tag tok">CALCULADORA</span><span class="card-hdr-title">Medio Interno — HCO₃, Na⁺, K⁺, Ca²⁺, Glucosa, Diuresis</span></div>
     <div class="card-body">
-      <div class="tabs">
+      <div class="tabs" style="flex-wrap:wrap">
         <div class="tab active" onclick="tab(this,'mi-hco3')">HCO₃</div>
         <div class="tab" onclick="tab(this,'mi-na')">Na⁺</div>
         <div class="tab" onclick="tab(this,'mi-k')">K⁺</div>
         <div class="tab" onclick="tab(this,'mi-ca')">Ca²⁺</div>
+        <div class="tab" onclick="tab(this,'mi-diuresis')">💧 Diuresis</div>
+        <div class="tab" onclick="tab(this,'mi-glucosa')">🩸 Glucosa</div>
+        <div class="tab" onclick="tab(this,'mi-dextrose')">💉 Dextrosa</div>
       </div>
       <div id="mi-hco3">
         <div class="cform">
@@ -771,6 +937,87 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
           <tr><td class="dd">&gt;3.0</td><td>Hipercalcemia severa</td><td class="dnote">SF 200–300 mL/h → furosemida 40 mg → bifosfonatos → hemodiálisis</td></tr>
         </tbody></table>
         <div class="alert i" style="margin-top:10px"><span class="alert-icon">ℹ️</span><div><strong>Ca corregido = Ca total + 0.8 × (4 − Albúmina g/dL).</strong> Mejor: Ca iónico en gasometría directamente.</div></div>
+      </div>
+
+      <!-- DIURESIS TAB -->
+      <div id="mi-diuresis" class="hidden">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div><strong>Diuresis normal:</strong> 0.5–1.0 mL/kg/h. &lt;0.5 = oliguria. &lt;0.3 = oliguria severa. Objetivo perioperatorio ≥0.5 mL/kg/h. <em style="color:var(--text3)">Ref: KDIGO AKI Guidelines 2012 / Miller's Anesthesia 9ª ed.</em></div></div>
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="diur-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Volumen orina (mL)</div><input class="ci" id="diur-vol" type="number" value="120" style="width:110px"></div>
+            <div class="cg"><div class="cl">Tiempo (h)</div><input class="ci" id="diur-tiempo" type="number" value="2" step="0.5" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcDiuresis()">Calcular ritmo diurético</button>
+          <div class="cres" id="diur-res" style="display:none"></div>
+        </div>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">CLASIFICACIÓN KDIGO 2012 — INJURIA RENAL AGUDA</div>
+        <table class="tbl"><thead><tr><th>Estadio</th><th>Diuresis</th><th>Creatinina</th><th>Acción</th></tr></thead><tbody>
+          <tr><td><span class="badge bw">1</span></td><td class="dd">&lt;0.5 mL/kg/h × 6–12h</td><td>×1.5–1.9 basal</td><td class="dnote">Optimizar volemia, revisar nefrotóxicos, monitoreo</td></tr>
+          <tr><td><span class="badge bd">2</span></td><td class="dd">&lt;0.5 mL/kg/h × ≥12h</td><td>×2–2.9 basal</td><td class="dnote">Nefroprotección activa, evitar contraste/AINEs/aminoglucósidos</td></tr>
+          <tr><td><span class="badge bd">3</span></td><td class="dd">&lt;0.3 mL/kg/h × ≥24h o anuria ×12h</td><td>×3 o Cr≥4 mg/dL</td><td class="dnote">Considerar TRR. Nefrología urgente.</td></tr>
+        </tbody></table>
+      </div>
+
+      <!-- HIPOGLUCEMIA TAB -->
+      <div id="mi-glucosa" class="hidden">
+        <div class="alert w"><span class="alert-icon">⚠️</span><div><strong>Hipoglucemia grave &lt;40 mg/dL:</strong> Reponer IV inmediato. Objetivo: glucemia 80–180 mg/dL intraoperatorio. <em style="color:var(--text3)">Ref: ADA/ERAS Society 2023, Lena et al. Anesthesiology 2011.</em></div></div>
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="glu-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Glucemia actual (mg/dL)</div><input class="ci" id="glu-actual" type="number" value="55" style="width:110px"></div>
+            <div class="cg"><div class="cl">Glucemia objetivo (mg/dL)</div><input class="ci" id="glu-target" type="number" value="120" style="width:110px"></div>
+            <div class="cg"><div class="cl">Solución disponible</div>
+              <select class="cs" id="glu-sol">
+                <option value="50">Dext. 50% (D50W)</option>
+                <option value="33">Dext. 33%</option>
+                <option value="25">Dext. 25%</option>
+                <option value="10">Dext. 10%</option>
+              </select>
+            </div>
+          </div>
+          <button class="cbtn" onclick="calcGlucosa()">Calcular reposición</button>
+          <div class="cres" id="glu-res" style="display:none"></div>
+        </div>
+        <hr class="divider">
+        <table class="tbl"><thead><tr><th>Glucemia (mg/dL)</th><th>Severidad</th><th>Conducta</th></tr></thead><tbody>
+          <tr><td class="dd">70–99</td><td><span class="badge bw">Leve</span></td><td class="dnote">Monitoreo cada 30 min. Evaluar causa. Glucosa VO si consciente.</td></tr>
+          <tr><td class="dd">54–69</td><td><span class="badge bd">Moderada</span></td><td class="dnote">D10% 100–150 mL IV. Repetir glucemia en 15 min.</td></tr>
+          <tr><td class="dd">&lt;54</td><td><span class="badge bd">Grave</span></td><td class="dnote">D50% 50 mL IV bolo (= 25 g dextrosa). Repetir hasta glucemia &gt;80.</td></tr>
+          <tr><td class="dd">&lt;40</td><td><span class="badge bd">Crítica</span></td><td class="dnote">D50% 50–100 mL IV urgente. Glucagón 1 mg IM si no acceso IV. UCI.</td></tr>
+        </tbody></table>
+      </div>
+
+      <!-- PLAN DEXTROSA TAB -->
+      <div id="mi-dextrose" class="hidden">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div>Plan de mantenimiento con dextrosa. Considerar en: pacientes diabéticos, insulinoterapia, ayuno prolongado, cirugía prolongada &gt;4h. <em style="color:var(--text3)">Ref: ERAS Society 2023, Salpeter et al. 2010, NICE-SUGAR Trial.</em></div></div>
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Peso (kg)</div><input class="ci" id="dext-peso" type="number" value="70" style="width:90px"></div>
+            <div class="cg"><div class="cl">Glucemia actual (mg/dL)</div><input class="ci" id="dext-glu" type="number" value="95" style="width:110px"></div>
+            <div class="cg"><div class="cl">Osm. urinaria (mOsm/kg)</div><input class="ci" id="dext-osm" type="number" value="450" style="width:110px" placeholder="300-900"></div>
+            <div class="cg"><div class="cl">Contexto</div>
+              <select class="cs" id="dext-ctx">
+                <option value="std">Estándar (adulto sano)</option>
+                <option value="dm1">DBT tipo 1 / insulina</option>
+                <option value="dm2">DBT tipo 2</option>
+                <option value="ped">Pediátrico</option>
+                <option value="hep">Insuf. hepática</option>
+              </select>
+            </div>
+          </div>
+          <button class="cbtn" onclick="calcDextrose()">Calcular plan dextrosa</button>
+          <div class="cres" id="dext-res" style="display:none"></div>
+        </div>
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">REFERENCIA RÁPIDA — SOLUCIONES GLUCOSADAS</div>
+        <table class="tbl"><thead><tr><th>Solución</th><th>g dextrosa/L</th><th>Osmolaridad</th><th>Uso habitual</th></tr></thead><tbody>
+          <tr><td class="dn">D5% (G5%)</td><td class="dd">50 g/L</td><td>278 mOsm/L</td><td class="dnote">Mantenimiento estándar. Via periférica.</td></tr>
+          <tr><td class="dn">D10%</td><td class="dd">100 g/L</td><td>556 mOsm/L</td><td class="dnote">Neonatos, hipoglucemia moderada</td></tr>
+          <tr><td class="dn">D25%</td><td class="dd">250 g/L</td><td>1389 mOsm/L</td><td class="dnote">Hipoglucemia grave. Preferible CVC.</td></tr>
+          <tr><td class="dn">D50%</td><td class="dd">500 g/L</td><td>2778 mOsm/L</td><td class="dnote">Hipoglucemia crítica. CVC obligatorio.</td></tr>
+        </tbody></table>
       </div>
     </div>
   </div>
@@ -962,6 +1209,265 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
           <tr><td class="dn">Cirugía torácica (OLV)</td><td class="dd">4–5 mL/kg PI</td><td>5 cmH₂O</td><td class="dnote">Ventilación unipulmonar. FR para normocapnia. CPAP pulmón dependiente si hipoxia. Suction intermitente.</td></tr>
           <tr><td class="dn">Laparoscopia</td><td class="dd">6–8 mL/kg PI</td><td>6–8 cmH₂O</td><td class="dnote">↑ ETCO₂ post-insuflación. ↑ FR 2–4/min. Trendelenburg: ↑ riesgo regurgitación y ↑ PIM.</td></tr>
           <tr><td class="dn">Neurocirugía</td><td class="dd">6–8 mL/kg PI</td><td>0–5 cmH₂O</td><td class="dnote">PEEP mínimo para PIC. Normocapnia (35–40). Evitar hipercapnia. Posición cabeza 30°. Manitol/NaCl 3% si PIC ↑.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PARAMETROS VENTILATORIOS -->
+<div id="section-param-vent" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr"><span class="tag tok">REFERENCIA</span><span class="card-hdr-title">Parámetros Ventilatorios — Valores Normales y Alarmas</span><span class="tag ti">PROVE / ARDSNet / ERS 2023</span></div>
+    <div class="card-body">
+      <div class="tabs" style="flex-wrap:wrap">
+        <div class="tab active" onclick="tab(this,'pv-presiones')">Presiones</div>
+        <div class="tab" onclick="tab(this,'pv-volumen')">Volumen / FR</div>
+        <div class="tab" onclick="tab(this,'pv-mecanica')">Mecánica Pulm.</div>
+        <div class="tab" onclick="tab(this,'pv-capno')">📈 Capnografía</div>
+      </div>
+
+      <!-- PRESIONES -->
+      <div id="pv-presiones">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div>Monitoreo de presiones en ventilación mecánica: la diferencia entre Ppico y Pmeseta refleja la resistencia de la vía aérea. La driving pressure (DP) es el predictor independiente más potente de mortalidad en SDRA. <em style="color:var(--text3)">Amato et al. NEJM 2015 — DP como predictor en SDRA.</em></div></div>
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Normal / Objetivo</th><th>Alarma / Acción</th><th>Fisiología</th></tr></thead><tbody>
+          <tr>
+            <td><strong style="color:var(--warn)">Ppico (PIP)</strong></td>
+            <td class="dd">&lt;35 cmH₂O</td>
+            <td class="dnote"><span class="badge bd">&gt;40</span> Evaluar obstrucción, broncoespasmo, secreciones, neumotórax</td>
+            <td class="dnote">Presión máxima en la vía aérea. Incluye resistencia del tubo + vía aérea + compliance</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent)">Pmeseta (Pplat)</strong></td>
+            <td class="dd">&lt;30 cmH₂O</td>
+            <td class="dnote"><span class="badge bd">&gt;30</span> Reducir VT a 4–5 mL/kg. Riesgo barotrauma</td>
+            <td class="dnote">Presión alveolar al final de la inspiración (pausa). Refleja compliance del sistema respiratorio</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent2)">PEEP total</strong></td>
+            <td class="dd">5–8 cmH₂O (periop.)</td>
+            <td class="dnote">PEEP intrínseco (auto-PEEP): ausencia de flujo cero antes de inspiración → alarma obstrucción</td>
+            <td class="dnote">PEEP extrínseco: fijado por ventilador. Auto-PEEP: atrapamiento aéreo (EPOC, FR alta, I:E corto)</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--danger)">Driving Pressure (DP)</strong></td>
+            <td class="dd">&lt;15 cmH₂O</td>
+            <td class="dnote"><span class="badge bd">&gt;15</span> Mayor mortalidad en SDRA (Amato 2015). Reducir VT o aumentar PEEP</td>
+            <td class="dnote">DP = Pplat − PEEP. Equivale a VT/Crs (compliance del sistema resp.). Marcador de stress alveolar</td>
+          </tr>
+          <tr>
+            <td><strong>Pmeseta / Ppico ratio</strong></td>
+            <td class="dd">&gt;0.8</td>
+            <td class="dnote">&lt;0.8 sugiere ↑ resistencia vía aérea: broncoespasmo, secreciones, tubo acodado</td>
+            <td class="dnote">Proporción de la presión que va a vencer compliance vs resistencia. Orientativo.</td>
+          </tr>
+          <tr>
+            <td><strong>PEEP mínimo SDRA</strong></td>
+            <td class="dd">≥5 cmH₂O</td>
+            <td class="dnote">Según tabla FiO₂/PEEP ARDSNet: FiO₂ 60%→PEEP 10 · FiO₂ 80%→PEEP 14 · FiO₂ 100%→PEEP 18–24</td>
+            <td class="dnote">PEEP mantiene unidades alveolares abiertas al final de la espiración (EELV). Previene colapso cíclico.</td>
+          </tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CALCULADORA RÁPIDA DE DRIVING PRESSURE</div>
+        <div class="cform">
+          <div class="crow">
+            <div class="cg"><div class="cl">Pplat (cmH₂O)</div><input class="ci" id="dp-pplat" type="number" value="24" style="width:110px"></div>
+            <div class="cg"><div class="cl">PEEP (cmH₂O)</div><input class="ci" id="dp-peep" type="number" value="8" style="width:90px"></div>
+            <div class="cg"><div class="cl">Ppico (cmH₂O)</div><input class="ci" id="dp-ppico" type="number" value="30" style="width:110px"></div>
+          </div>
+          <button class="cbtn" onclick="calcDP()">Calcular</button>
+          <div class="cres" id="dp-res" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- VOLUMEN / FR -->
+      <div id="pv-volumen" class="hidden">
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Normal / Objetivo</th><th>Límite / Alarma</th><th>Notas</th></tr></thead><tbody>
+          <tr>
+            <td><strong style="color:var(--accent)">Volumen Tidal (VT)</strong></td>
+            <td class="dd">6–8 mL/kg PI (prot.) · 8–10 mL/kg (clásico)</td>
+            <td class="dnote">Nunca &gt;10 mL/kg PI en pulmón sano. En SDRA: 4–6 mL/kg PI (ARDSNet)</td>
+            <td class="dnote">Calcular siempre sobre <strong>Peso Ideal (PI)</strong>. Hombre: 50 + 0.91(cm-152.4). Mujer: 45.5 + 0.91(cm-152.4)</td>
+          </tr>
+          <tr>
+            <td><strong>Frecuencia respiratoria</strong></td>
+            <td class="dd">12–16/min (adulto)</td>
+            <td class="dnote">SDRA: hasta 35/min para pH &gt;7.30. EPOC: 10–14/min (I:E 1:3). Laparoscopia: +2–4/min sobre basal</td>
+            <td class="dnote">Ajustar por ETCO₂ (35–45 mmHg). En neurocirugía: normocapnia estricta (35–40).</td>
+          </tr>
+          <tr>
+            <td><strong>Volumen minuto (VE)</strong></td>
+            <td class="dd">5–8 L/min</td>
+            <td class="dnote">&gt;12 L/min: hiperventilación o hipercapnia compensada. &lt;4 L/min: riesgo hipercapnia</td>
+            <td class="dnote">VE = VT × FR. La ventilación alveolar depende del espacio muerto (VD ~30% de VE)</td>
+          </tr>
+          <tr>
+            <td><strong>Relación I:E</strong></td>
+            <td class="dd">1:2 (estándar)</td>
+            <td class="dnote">EPOC/asma: 1:3–1:4 (más tiempo espiratorio). SDRA: puede requerir I:E inversa 2:1 (PRN)</td>
+            <td class="dnote">I:E corto + FR alta → riesgo auto-PEEP. Siempre verificar flujo cero al final espiración.</td>
+          </tr>
+          <tr>
+            <td><strong>FiO₂</strong></td>
+            <td class="dd">Mínima para SpO₂ 94–98%</td>
+            <td class="dnote">Evitar hiperoxia (FiO₂ &gt;0.8 sostenida). SDRA: SpO₂ objetivo 88–95% (hipoxia permisiva)</td>
+            <td class="dnote">Inicio ISR: FiO₂ 1.0. Post-intubación: ajustar rápido a mínimo necesario.</td>
+          </tr>
+          <tr>
+            <td><strong>ETCO₂</strong></td>
+            <td class="dd">35–45 mmHg</td>
+            <td class="dnote">Laparoscopia: objetivo 40–45. Neurocirugía: 35–40 estricto. Embarazo: 30–35 (fisiológico)</td>
+            <td class="dnote">ETCO₂ subestima PaCO₂ en ~5 mmHg. Gradiente ↑ en: TEP, bajo GC, SDRA, shunt.</td>
+          </tr>
+        </tbody></table>
+      </div>
+
+      <!-- MECANICA PULMONAR -->
+      <div id="pv-mecanica" class="hidden">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div><strong>Poder Mecánico (MP):</strong> integra todas las variables que generan VILI. MP &gt;12–17 J/min se asocia a VILI. <em style="color:var(--text3)">Ref: Gattinoni et al. ICM 2016 / Serpa Neto et al. Anesthesiology 2018.</em></div></div>
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Fórmula / Valor</th><th>Normal</th><th>Significado</th></tr></thead><tbody>
+          <tr>
+            <td><strong style="color:var(--danger)">Poder Mecánico (MP)</strong></td>
+            <td class="dd" style="font-size:11px">MP ≈ 0.098 × FR × VT × (Ppico − DP/2)</td>
+            <td class="dd">&lt;12 J/min ideal<br>&lt;17 J/min aceptable</td>
+            <td class="dnote">Energía transferida al pulmón por minuto. Principal determinante de VILI junto con DP.</td>
+          </tr>
+          <tr>
+            <td><strong>Compliance estática (Cst)</strong></td>
+            <td class="dd">Cst = VT / (Pplat − PEEP)</td>
+            <td class="dd">60–100 mL/cmH₂O</td>
+            <td class="dnote">&lt;30: pulmón rígido (SDRA, fibrosis). &gt;100: enfisema. Intraop. normal: 40–70 mL/cmH₂O.</td>
+          </tr>
+          <tr>
+            <td><strong>Compliance dinámica (Cdyn)</strong></td>
+            <td class="dd">Cdyn = VT / (Ppico − PEEP)</td>
+            <td class="dd">50–80 mL/cmH₂O</td>
+            <td class="dnote">Incluye resistencias. Cst &gt; Cdyn → resistencia ↑. Cdyn ↓ abrupta: broncoespasmo, obstrucción.</td>
+          </tr>
+          <tr>
+            <td><strong>Resistencia vía aérea (Raw)</strong></td>
+            <td class="dd">Raw = (Ppico − Pplat) / Flujo (L/s)</td>
+            <td class="dd">2–5 cmH₂O/L/s</td>
+            <td class="dnote">&gt;10: broncoespasmo, tubo acodado, secreciones. &gt;20: obstrucción severa. Flujo fijo 60 L/min = 1 L/s.</td>
+          </tr>
+          <tr>
+            <td><strong>Stress index</strong></td>
+            <td class="dd">Curva P-t en VCV</td>
+            <td class="dd">~1.0 (lineal)</td>
+            <td class="dnote">&lt;1: reclutamiento progresivo (PEEP puede aumentar). &gt;1: sobredistensión (reducir VT/PEEP).</td>
+          </tr>
+          <tr>
+            <td><strong>P0.1</strong></td>
+            <td class="dd">Presión 100ms post-oclusión</td>
+            <td class="dd">&lt;4 cmH₂O</td>
+            <td class="dnote">Índice de esfuerzo inspiratorio. &gt;4: alto drive, riesgo P-SILI en ventilación espontánea.</td>
+          </tr>
+        </tbody></table>
+        <hr class="divider">
+        <div class="cform">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CALCULADORA DE COMPLIANCE Y RESISTENCIA</div>
+          <div class="crow">
+            <div class="cg"><div class="cl">VT (mL)</div><input class="ci" id="mec-vt" type="number" value="500" style="width:90px"></div>
+            <div class="cg"><div class="cl">Ppico</div><input class="ci" id="mec-ppico" type="number" value="28" style="width:90px"></div>
+            <div class="cg"><div class="cl">Pplat</div><input class="ci" id="mec-pplat" type="number" value="22" style="width:90px"></div>
+            <div class="cg"><div class="cl">PEEP</div><input class="ci" id="mec-peep" type="number" value="6" style="width:90px"></div>
+            <div class="cg"><div class="cl">FR (/min)</div><input class="ci" id="mec-fr" type="number" value="14" style="width:90px"></div>
+          </div>
+          <button class="cbtn" onclick="calcMecanica()">Calcular mecánica</button>
+          <div class="cres" id="mec-res" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- CAPNOGRAFIA -->
+      <div id="pv-capno" class="hidden">
+        <div class="alert i"><span class="alert-icon">ℹ️</span><div><strong>ETCO₂ normal: 35–45 mmHg</strong> (4.7–6.0 kPa). Gradiente PaCO₂–ETCO₂ normal: 2–5 mmHg. Gradiente ↑ → espacio muerto ↑ (TEP, bajo GC, SDRA). <em style="color:var(--text3)">Ref: Capnography in Clinical Practice — Bhavani-Shankar 2021.</em></div></div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">FASES DE LA ONDA CAPNOGRÁFICA NORMAL</div>
+        <!-- SVG capno waveform -->
+        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:14px;margin-bottom:12px">
+          <svg viewBox="0 0 520 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:520px;display:block;margin:0 auto">
+            <!-- Grid lines -->
+            <line x1="0" y1="100" x2="520" y2="100" stroke="#1a2a3a" stroke-width="1"/>
+            <line x1="0" y1="70" x2="520" y2="70" stroke="#1a2a3a" stroke-width="0.5" stroke-dasharray="3,3"/>
+            <line x1="0" y1="40" x2="520" y2="40" stroke="#1a2a3a" stroke-width="0.5" stroke-dasharray="3,3"/>
+            <!-- Waveform cycle 1 -->
+            <polyline points="10,100 30,100 35,100 38,30 65,28 70,100 90,100" fill="none" stroke="#00c8ff" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- Waveform cycle 2 -->
+            <polyline points="90,100 110,100 115,100 118,30 145,28 150,100 170,100" fill="none" stroke="#00c8ff" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- Waveform cycle 3 -->
+            <polyline points="170,100 190,100 195,100 198,30 225,28 230,100 510,100" fill="none" stroke="#00c8ff" stroke-width="2.5" stroke-linejoin="round"/>
+            <!-- Phase labels -->
+            <text x="18" y="114" fill="#3d5a75" font-size="8" font-family="JetBrains Mono, monospace">I</text>
+            <text x="33" y="114" fill="#3d5a75" font-size="8" font-family="JetBrains Mono, monospace">II</text>
+            <text x="50" y="114" fill="#3d5a75" font-size="8" font-family="JetBrains Mono, monospace">III</text>
+            <text x="63" y="114" fill="#3d5a75" font-size="8" font-family="JetBrains Mono, monospace">IV</text>
+            <text x="75" y="114" fill="#3d5a75" font-size="8" font-family="JetBrains Mono, monospace">0</text>
+            <!-- ETCO2 label -->
+            <text x="490" y="24" fill="#7b61ff" font-size="9" font-family="JetBrains Mono, monospace">ETCO₂</text>
+            <line x1="456" y1="28" x2="484" y2="28" stroke="#7b61ff" stroke-width="1" stroke-dasharray="3,2"/>
+            <!-- Baseline label -->
+            <text x="480" y="96" fill="#3d5a75" font-size="9" font-family="JetBrains Mono, monospace">0 mmHg</text>
+          </svg>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;font-size:10px;font-family:'JetBrains Mono',monospace">
+            <div style="color:var(--text2)"><span style="color:var(--accent)">Fase I:</span> Espiración muerto anatómico (CO₂≈0)</div>
+            <div style="color:var(--text2)"><span style="color:var(--accent)">Fase II:</span> Mezcla VD/alveolar (↑ rápido CO₂)</div>
+            <div style="color:var(--text2)"><span style="color:var(--accent)">Fase III:</span> Meseta alveolar (CO₂ máx → ETCO₂)</div>
+            <div style="color:var(--text2)"><span style="color:var(--accent)">Fase 0:</span> Inspiración (CO₂ cae a 0)</div>
+          </div>
+        </div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">INTERPRETACIÓN DE ALTERACIONES DE LA ONDA</div>
+        <table class="tbl"><thead><tr><th>Patrón</th><th>Morfología / ETCO₂</th><th>Causa más probable</th><th>Acción</th></tr></thead><tbody>
+          <tr>
+            <td><strong style="color:var(--danger)">↑ ETCO₂ agudo</strong></td>
+            <td class="dd">↑ ETCO₂ con onda normal</td>
+            <td class="dnote">Hipoventilación, ↑ producción CO₂ (HM, fiebre, pain), reventilación post-isquemia, absorción CO₂ laparoscopia</td>
+            <td class="dnote">Aumentar FR / VT. Descartar HM (↑ ETCO₂ + taquicardia + rigidez). Verificar cal sodada.</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent)">↓ ETCO₂ agudo</strong></td>
+            <td class="dd">↓ ETCO₂ brusco a 0</td>
+            <td class="dnote">Desconexión circuito, extubación accidental, obstrucción ETT, parada cardíaca</td>
+            <td class="dnote">Verificar circuito, posición ETT, iniciar RCP si PCR. ¡Siempre confirmar pulso!</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent)">↓ ETCO₂ gradual</strong></td>
+            <td class="dd">↓ progresivo, onda normal</td>
+            <td class="dnote">Hiperventilación iatrogénica, hipotermia, ↓ GC, TEP, hipovolemia severa</td>
+            <td class="dnote">Reducir FR. Evaluar estado hemodinámico y TEP si ETCO₂ &lt;30 + hipoxia.</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--warn)">Meseta inclinada (↑ fase III)</strong></td>
+            <td class="dd">Fase III con pendiente positiva ("shark fin")</td>
+            <td class="dnote">Broncoespasmo, EPOC, asma, obstrucción parcial ETT. Distribución desigual vaciamiento alveolar.</td>
+            <td class="dnote">Broncodilatadores (salbutamol, sevoflurano). Aumentar tiempo espiratorio (I:E 1:3–1:4).</td>
+          </tr>
+          <tr>
+            <td><strong>Doble elevación (curly Q)</strong></td>
+            <td class="dd">Dos picos en fase III</td>
+            <td class="dnote">Movimiento espontáneo del paciente durante VM, artefacto de ventilación. Actividad diafragmática.</td>
+            <td class="dnote">Evaluar profundidad anestesia. Ajustar analgesia. Bloqueo NM si interfiere.</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent2)">Capno en RCP</strong></td>
+            <td class="dd">↑ ETCO₂ al reanimar</td>
+            <td class="dnote">ETCO₂ durante RCP correlaciona con GC. ETCO₂ &gt;10 mmHg = RCP efectiva. Aumento abrupto → ROSC</td>
+            <td class="dnote">ETCO₂ &gt;10 mmHg: continuar. &lt;10 mmHg al minuto 20: considerar cese. ↑ súbito &gt;35: ROSC.</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--accent3)">Rebreathing (CO₂ no regresa a 0)</strong></td>
+            <td class="dd">Fase 0 &gt; 0 mmHg</td>
+            <td class="dnote">Cal sodada agotada, válvula espiratoria incompetente, flujo fresco insuficiente, adaptador muerto</td>
+            <td class="dnote">Cambiar cal sodada. Verificar válvulas. ↑ flujo fresco. Cambiar circuito.</td>
+          </tr>
+          <tr>
+            <td><strong>Gradiente PaCO₂-ETCO₂ ↑</strong></td>
+            <td class="dd">PaCO₂ mucho &gt; ETCO₂</td>
+            <td class="dnote">TEP, bajo GC, SDRA severo, ventilación espacial muerto. Gradiente normal: 2–5 mmHg.</td>
+            <td class="dnote">Solicitar gasometría. Evaluar TEP (clínica + POCUS). VD/perfusión ratio elevado.</td>
+          </tr>
         </tbody></table>
       </div>
     </div>
@@ -2052,6 +2558,445 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
+     MÓDULO: CIRUGÍA CARDIOVASCULAR
+     Checklist completo CEC · Cardioplejía · Off-pump · MICS
+═══════════════════════════════════════════════════════════ -->
+<div id="section-cv-checklist" class="hidden fade">
+  <div class="card">
+    <div class="card-hdr">
+      <span class="tag tw">CARDIOVASCULAR</span>
+      <span class="card-hdr-title">Anestesia en Cirugía Cardíaca — Checklist y Referencia</span>
+      <span class="tag ti">Wallace · Hensley · Aston 2023</span>
+    </div>
+    <div class="card-body">
+
+      <div class="alert w" style="margin-bottom:12px"><span class="alert-icon">⚠️</span><div><strong>Nunca inducir sin:</strong> cirujano en sala capaz de poner en CEC en &lt;5 min · perfusionista con bomba lista · ACT basal tomado · desfibrilador externo disponible.</div></div>
+
+      <div class="tabs" style="flex-wrap:wrap">
+        <div class="tab active" onclick="tab(this,'cv-pre')">Pre-CEC</div>
+        <div class="tab" onclick="tab(this,'cv-bypass')">En CEC</div>
+        <div class="tab" onclick="tab(this,'cv-salida')">Salida CEC</div>
+        <div class="tab" onclick="tab(this,'cv-cardio')">Cardioplejía</div>
+        <div class="tab" onclick="tab(this,'cv-mics')">MICS / Off-pump</div>
+        <div class="tab" onclick="tab(this,'cv-hemo')">Hemodinámica</div>
+        <div class="tab" onclick="tab(this,'cv-valvulas')">Valvulopatías</div>
+      </div>
+
+      <!-- ══ PRE-CEC ══ -->
+      <div id="cv-pre">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">SETUP Y PREPARACIÓN — ANTES DE INDUCCIÓN</div>
+        <div class="g2" style="margin-bottom:12px">
+          <div>
+            <div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:6px">MONITOREO</div>
+            <div class="small" style="margin-bottom:3px">✓ A-línea derecha (retractor IMA ocluye izquierda)</div>
+            <div class="small" style="margin-bottom:3px">✓ ECG 5 derivaciones · V5 cubierta con tegaderm</div>
+            <div class="small" style="margin-bottom:3px">✓ Catéter AP (PA) yugular interna derecha · ECHO guía</div>
+            <div class="small" style="margin-bottom:3px">✓ Oximetría cerebral (NIRS) en MICS / re-esternotomía</div>
+            <div class="small" style="margin-bottom:3px">✓ Parches desfibrilación externa (MICS: obligatorio)</div>
+            <div class="small">✓ TEE: sonda en esófago antes de incisión. Bite-block si dientes.</div>
+          </div>
+          <div>
+            <div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:6px">ACCESOS VASCULARES</div>
+            <div class="small" style="margin-bottom:3px">✓ ≥1 acceso periférico grueso (&lt;16G) · 2 idealmente</div>
+            <div class="small" style="margin-bottom:3px">✓ CVC yugular interna derecha (PA catheter)</div>
+            <div class="small" style="margin-bottom:3px">✓ Si MICS: CVC izquierdo (VYID derecha para canulación)</div>
+            <div class="small" style="margin-bottom:3px">✓ Heplock una vía si abundantes accesos — limitar fluidos</div>
+            <div class="small">✓ Jeringa heparina 30,000 UI lista · no administrar aún</div>
+          </div>
+        </div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">DROGAS EN MESA — DISPONIBLES ANTES DE INDUCIR</div>
+        <table class="tbl"><thead><tr><th>Droga</th><th>Concentración / forma</th><th>Para qué</th></tr></thead><tbody>
+          <tr><td class="dn">Heparina</td><td class="dd">30,000 UI jeringa · 1000 UI/mL</td><td class="dnote">Anticoagulación CEC: 300 UI/kg IV central. SIEMPRE aspirar antes y después.</td></tr>
+          <tr><td class="dn">Protamina</td><td class="dd">10 mg/mL</td><td class="dnote">Reversión: 1 mg protamina = 100 UI heparina. Dar lento periférico (10 mg test primero).</td></tr>
+          <tr><td class="dn">Fenilefrina</td><td class="dd">Infusión lista pre-inducción</td><td class="dnote">Hipotensión post-inducción. Iniciar antes de inducir en todos los pacientes.</td></tr>
+          <tr><td class="dn">Noradrenalina</td><td class="dd">Preparada</td><td class="dnote">Post-CEC si RVS baja. SVR objetivo: 800–1200 dynes·s/cm⁵</td></tr>
+          <tr><td class="dn">Dopamina / Dobutamina</td><td class="dd">Preparada</td><td class="dnote">Soporte inotrópico post-CEC. Preferir milrinona si FE muy baja.</td></tr>
+          <tr><td class="dn">Cloruro de calcio</td><td class="dd">1g IV listo</td><td class="dnote">Salida de CEC rutinaria. ⚠️ No >2g: riesgo pancreatitis.</td></tr>
+          <tr><td class="dn">Ácido tranexámico</td><td class="dd">1–2 g IV lento</td><td class="dnote">Antifibrinolítico ANTES del inicio de CEC. Evidencia clase I en reducción transfusión.</td></tr>
+          <tr><td class="dn">Lidocaína + Mg</td><td class="dd">100 mg bolo · Mg 2g IV</td><td class="dnote">Profilaxis arritmias (off-pump especialmente). Amiodarona 150 mg si arritmias.</td></tr>
+          <tr><td class="dn">Succinilcolina</td><td class="dd">200 mg jeringa</td><td class="dnote">Relajación para esternotomía. Desconectar ventilador durante apertura esternal.</td></tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CHECKLIST PRE-CEC — MNEMÓNICO HAD²SUE</div>
+        <div style="background:rgba(255,184,0,.06);border:1px solid rgba(255,184,0,.2);border-radius:4px;padding:12px;margin-bottom:10px">
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">H</div><div class="st"><strong style="color:var(--warn)">Heparina</strong> — confirmada por el anestesiólogo verbalmente. <span class="dose">300 UI/kg IV central</span>. Aspirar antes y después. Registrar hora.</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">A</div><div class="st"><strong style="color:var(--warn)">ACT</strong> — &gt;<span class="dose">450 seg</span> antes de CEC. Con aprotinina: ACT celite &gt;800 s. Tomar muestra arterial 2 min post-heparina.</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">D</div><div class="st"><strong style="color:var(--warn)">Drogas</strong> — relajante NM completo antes de canulación (evitar respiración espontánea con aurícula abierta → embolia gaseosa).</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">D</div><div class="st"><strong style="color:var(--warn)">Drips</strong> — suspender inotrópicos. Preparar para desviar circulación al circuito de CEC.</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">S</div><div class="st"><strong style="color:var(--warn)">Swan</strong> — retirar catéter AP <span class="dose">5 cm</span> para evitar oclusión/ruptura de AP durante CEC.</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">U</div><div class="st"><strong style="color:var(--warn)">Urine</strong> — registrar diuresis pre-bypass como baseline.</div></li>
+            <li class="step"><div class="sn w" style="font-size:14px;width:26px;height:26px;min-width:26px">E</div><div class="st"><strong style="color:var(--warn)">Emboli</strong> — verificar cánula arterial sin burbujas. Avisar inmediatamente si se ve burbuja en línea arterial.</div></li>
+          </ul>
+        </div>
+
+        <div class="alert i"><span class="alert-icon">🔑</span><div><strong>Esternotomía:</strong> desconectar ventilador al abrir esternón (pide el cirujano). Reconectar inmediatamente después. Desarrollar sistema propio (alarma, recordatorio) — olvidar reconectar es error grave.</div></div>
+      </div>
+
+      <!-- ══ EN CEC ══ -->
+      <div id="cv-bypass" class="hidden">
+        <div class="alert i" style="margin-bottom:10px"><span class="alert-icon">ℹ️</span><div>Cuando el perfusionista dice "full flow" (4–5 L/min drenaje completo) → apagar ventilador. Presiones de AP deben volverse no-pulsátiles. Monitorear ACT c/30 min durante CEC.</div></div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">OBJETIVOS HEMODINÁMICOS EN CEC</div>
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Período frío (pinzamiento)</th><th>Período cálido (sin pinzamiento)</th><th>Notas</th></tr></thead><tbody>
+          <tr><td><strong>PAM</strong></td><td class="dd">40–60 mmHg</td><td class="dd">60–80 mmHg</td><td class="dnote">Pacientes con EVP carotídea o IRC: mantener 60–80 en todo el bypass</td></tr>
+          <tr><td><strong>Temperatura</strong></td><td class="dd">28–32°C (hipotermia moderada)</td><td class="dd">Recalentar a 37°C gradual</td><td class="dnote">Evitar hipertermia (>37°C durante embólicos). Normotermia si &lt;60 min cross-clamp</td></tr>
+          <tr><td><strong>Flujo bomba</strong></td><td class="dd">1.2–1.8 L/min/m²</td><td class="dd">2.2–2.4 L/min/m²</td><td class="dnote">Índice cardíaco equivalente. Ajustar con RVS</td></tr>
+          <tr><td><strong>Hematocrito</strong></td><td class="dd">&gt;20%</td><td class="dd">&gt;21–25% al salir</td><td class="dnote">&lt;20%: transfundir GR. Hemodilución por cebado del circuito es inevitable.</td></tr>
+          <tr><td><strong>Glucemia</strong></td><td class="dd">80–180 mg/dL</td><td class="dd">80–180 mg/dL</td><td class="dnote">Evitar hiperglucemia durante embólicos (↑ daño neurológico). Insulina si &gt;180</td></tr>
+          <tr><td><strong>Potasio</strong></td><td class="dd">Variable (cardioplejía ↑K)</td><td class="dd">Objetivo 4.0–5.0 al salir</td><td class="dnote">&gt;5.5 post-bypass: el perfusionista puede dializarlo en el circuito</td></tr>
+          <tr><td><strong>ACT durante CEC</strong></td><td class="dd">&gt;450 s (c/30 min)</td><td class="dd">&gt;450 s hasta protamina</td><td class="dnote">Si cae: agregar heparina (5,000–10,000 UI). Nunca dejar &lt;400 s.</td></tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">VIGILANCIA DURANTE CEC — TRES FORMAS DE MATAR AL PACIENTE (perfusionista)</div>
+        <div class="g3">
+          <div style="background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.2);border-radius:4px;padding:10px;text-align:center">
+            <div style="color:var(--danger);font-family:var(--mono);font-size:20px;margin-bottom:4px">①</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--danger)">Sin O₂ en oxigenador</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px">Verificar FiO₂ del oxigenador continuamente</div>
+          </div>
+          <div style="background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.2);border-radius:4px;padding:10px;text-align:center">
+            <div style="color:var(--danger);font-family:var(--mono);font-size:20px;margin-bottom:4px">②</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--danger)">Sin heparina</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px">Confirmar ACT &gt;450 antes de iniciar</div>
+          </div>
+          <div style="background:rgba(255,61,61,.07);border:1px solid rgba(255,61,61,.2);border-radius:4px;padding:10px;text-align:center">
+            <div style="color:var(--danger);font-family:var(--mono);font-size:20px;margin-bottom:4px">③</div>
+            <div style="font-family:var(--mono);font-size:10px;color:var(--danger)">Reservorio vacío</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px">Embolia gaseosa masiva. Vigilar nivel.</div>
+          </div>
+        </div>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">EMBOLIA GASEOSA — MOMENTOS DE MAYOR RIESGO</div>
+        <div class="small" style="margin-bottom:3px">• Canulación aórtica · Colocación y retirada de pinza · Salida de bypass · Retiro de cánula aórtica</div>
+        <div class="small" style="margin-bottom:3px">• Maniobras de de-airing: Trendelenburg, masajear corazón, aspiración de aorta, aguja en ventrículo</div>
+        <div class="small">• TEE: "tormenta de nieve" = burbujas normales. Burbujas grandes o persistentes → avisar al cirujano.</div>
+      </div>
+
+      <!-- ══ SALIDA DE CEC ══ -->
+      <div id="cv-salida" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CHECKLIST SALIDA DE CEC — MNEMÓNICO WRMVP</div>
+        <div style="background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-radius:4px;padding:12px;margin-bottom:12px">
+          <ul class="steps" style="margin:0">
+            <li class="step"><div class="sn b" style="font-size:14px;width:26px;height:26px;min-width:26px">W</div><div class="st"><strong style="color:var(--accent)">Warm</strong> — temperatura &gt;36°C (vejiga y sangre). No salir en hipotermia: riesgo de fibrilación.</div></li>
+            <li class="step"><div class="sn b" style="font-size:14px;width:26px;height:26px;min-width:26px">R</div><div class="st"><strong style="color:var(--accent)">Rhythm</strong> — ritmo sinusal o marcapasos a FC adecuada (60–80). Cardiovertir si FV/FA. Marcapasos transcutáneo listo.</div></li>
+            <li class="step"><div class="sn b" style="font-size:14px;width:26px;height:26px;min-width:26px">M</div><div class="st"><strong style="color:var(--accent)">Monitors On</strong> — reactivar alarmas · PA invasiva · CVP · AP · TEE activo para guiar el weaning.</div></li>
+            <li class="step"><div class="sn b" style="font-size:14px;width:26px;height:26px;min-width:26px">V</div><div class="st"><strong style="color:var(--accent)">Ventilation</strong> — ¡ENCENDER EL VENTILADOR! Fácil de olvidar. VT 6–8 mL/kg PI · PEEP 5 · FiO₂ 1.0 inicialmente.</div></li>
+            <li class="step"><div class="sn b" style="font-size:14px;width:26px;height:26px;min-width:26px">P</div><div class="st"><strong style="color:var(--accent)">Perfusion</strong> — calcular SVR. Ajustar RVS antes de salir. Objetivo: SVR 800–1200 dynes·s/cm⁵.</div></li>
+          </ul>
+        </div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">CÁLCULO DE SVR PARA WEANING</div>
+        <div style="background:var(--bg);border:1px solid var(--border2);border-radius:4px;padding:12px;margin-bottom:12px">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);margin-bottom:8px">SVR = [(PAM − PVC) / GC] × 80</div>
+          <div class="small" style="margin-bottom:4px">Preguntar al perfusionista el flujo de bomba (= GC durante CEC)</div>
+          <div class="small" style="margin-bottom:4px">Ej: PAM 50, PVC 10, flujo 5 L/min → SVR = (50−10)/5 × 80 = <strong style="color:var(--warn)">640</strong> dynes (bajo)</div>
+          <div class="small">Si SVR bajo → vasoconstrictor (fenilefrina, noradrenalina) ANTES de salir, no después</div>
+        </div>
+        <div class="cform" style="margin-bottom:12px">
+          <div class="crow">
+            <div class="cg"><div class="cl">PAM (mmHg)</div><input class="ci" id="svr-pam" type="number" value="55" style="width:90px"></div>
+            <div class="cg"><div class="cl">PVC (mmHg)</div><input class="ci" id="svr-pvc" type="number" value="10" style="width:90px"></div>
+            <div class="cg"><div class="cl">GC / flujo bomba (L/min)</div><input class="ci" id="svr-gc" type="number" value="5" step="0.1" style="width:110px"></div>
+          </div>
+          <button class="cbtn" onclick="calcSVR()">Calcular SVR</button>
+          <div class="cres" id="svr-res" style="display:none"></div>
+        </div>
+
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">POST-CEC — VALORES OBJETIVO</div>
+        <table class="tbl"><thead><tr><th>Parámetro</th><th>Objetivo</th><th>Acción si fuera de rango</th></tr></thead><tbody>
+          <tr><td><strong>TAS</strong></td><td class="dd">100–120 mmHg</td><td class="dnote">&gt;120: vasodilatador (nitroglicerina) · más sangrado. &lt;80: vasopresor ± inotrópico</td></tr>
+          <tr><td><strong>Índice cardíaco</strong></td><td class="dd">&gt;2.0 L/min/m²</td><td class="dnote">&lt;2.0: dobutamina 3–5 mcg/kg/min o milrinona 0.25–0.5 mcg/kg/min</td></tr>
+          <tr><td><strong>PAPd</strong></td><td class="dd">&lt;20 mmHg</td><td class="dnote">&gt;20: insuf. ventricular izquierda o HAP. Evaluar con TEE.</td></tr>
+          <tr><td><strong>PVC</strong></td><td class="dd">&lt;15 mmHg</td><td class="dnote">PVC &gt; PAPd → falla VD o mal calibrado. Evaluar función VD por TEE urgente.</td></tr>
+          <tr><td><strong>ACT post-protamina</strong></td><td class="dd">120–130 s (basal)</td><td class="dnote">Si elevado: más protamina. Si da sangre del circuito/cell-saver: repetir ACT.</td></tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">PROTAMINA — ADMINISTRACIÓN SEGURA</div>
+        <div class="alert w"><span class="alert-icon">⚠️</span><div><strong>Reacciones a protamina:</strong> hipotensión, broncoespasmo, HAP severa, anafilaxia. <strong>Protocolo:</strong> 1) Test 10 mg IV periférico → esperar 2 min. 2) Si sin reacción: resto lento en 20 min. 3) Avisar al perfusionista cuando llegue el 1/3 de la dosis (para detener succionadores de bomba y no coagular el circuito).</div></div>
+      </div>
+
+      <!-- ══ CARDIOPLEJÍA ══ -->
+      <div id="cv-cardio" class="hidden">
+        <div class="alert i" style="margin-bottom:10px"><span class="alert-icon">ℹ️</span><div>La cardioplejía detiene el corazón por <strong>despolarización diastólica</strong> mediante K⁺ que reduce el potencial de membrana (~−85 mV), impidiendo repolarización. Objetivo: reducir CMVO₂ al mínimo durante pinzamiento aórtico. <em style="color:var(--text3)">StatPearls 2025 · Carvajal et al.</em></div></div>
+
+        <div class="tabs"><div class="tab active" onclick="tab(this,'cp-tipos')">Tipos</div><div class="tab" onclick="tab(this,'cp-via')">Vías Administración</div><div class="tab" onclick="tab(this,'cp-monitor')">Monitoreo Anest.</div></div>
+
+        <div id="cp-tipos">
+          <table class="tbl"><thead><tr><th>Solución</th><th>Base</th><th>Protección</th><th>Redosificación</th><th>Usos principales</th></tr></thead><tbody>
+            <tr>
+              <td class="dn">Sanguínea (Buckberg 4:1)</td>
+              <td>Sangre 4:1 cristaloide</td>
+              <td class="dnote">Buffer natural, presión oncótica, O₂ carrier, eliminación radicales libres</td>
+              <td class="dd">c/20–30 min</td>
+              <td class="dnote">Estándar más utilizado mundialmente. Adaptable como cálida o fría.</td>
+            </tr>
+            <tr>
+              <td class="dn">Del Nido (dosis única)</td>
+              <td>Sangre 1:4 cristaloide</td>
+              <td class="dnote">Lidocaína (bloquea Na⁺) + MgSO₄ (antagonista Ca²⁺). Composición similar a LEC.</td>
+              <td class="dd">60 min protección</td>
+              <td class="dnote">MICS y procedimientos simples. ↓ troponina T · ↑ conversión ritmo sinusal espontáneo · ↓ insulina requerida. Redosar en HVI o ECA severa.</td>
+            </tr>
+            <tr>
+              <td class="dn">Bretschneider (HTK)</td>
+              <td>Cristaloide puro</td>
+              <td class="dnote">↓ Na⁺/Ca²⁺, tampón histidina (glucólisis anaeróbica), triptófano (estabilización membrana), cetoglutarato (precursor ATP)</td>
+              <td class="dd">2–3 h protección</td>
+              <td class="dnote">Trasplante cardíaco, cirugía prolongada. Dosis única en adultos.</td>
+            </tr>
+            <tr>
+              <td class="dn">St. Thomas (cristaloide)</td>
+              <td>Cristaloide extracelular</td>
+              <td class="dnote">K⁺ 15–20 mEq/L + Mg²⁺ + procaína</td>
+              <td class="dd">c/20 min (acidosis entre dosis)</td>
+              <td class="dnote">Histórica. Requiere redosificación frecuente. Del Nido la supera en muchos contextos.</td>
+            </tr>
+            <tr>
+              <td class="dn">Microplejía</td>
+              <td>Sangre pura concentrada</td>
+              <td class="dnote">Volumen mínimo (~250 mL total). Previene hemodilución y edema miocárdico.</td>
+              <td class="dd">Variable</td>
+              <td class="dnote">Pacientes con anemia · Testigos de Jehová · Pediátrico.</td>
+            </tr>
+          </tbody></table>
+          <div class="alert w" style="margin-top:10px"><span class="alert-icon">🌡️</span><div><strong>Temperatura:</strong> fría (4–8°C) = standard. Cálida (37°C) continua = normotérmica (controversia). "Hot shot" terminal = dosis caliente antes de retirar pinza (reperfusión enriquecida). Sin consenso claro en temperatura óptima.</div></div>
+        </div>
+
+        <div id="cp-via" class="hidden">
+          <div class="g2" style="gap:12px">
+            <div style="background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.18);border-radius:4px;padding:12px">
+              <div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:8px">ANTERÓGRADA</div>
+              <div class="small" style="margin-bottom:3px">Cánula en raíz aórtica (proximal a pinza)</div>
+              <div class="small" style="margin-bottom:3px">Fluye por coronarias derecha e izquierda (fisiológico)</div>
+              <div class="small" style="margin-bottom:3px">Presión infusión: 60–80 mmHg (no > 100)</div>
+              <div class="small" style="margin-bottom:3px">Monitoreo barométrico: previene daño endotelial por sobrepresión</div>
+              <div class="small" style="margin-bottom:4px">El anestesiólogo guía con TEE en MICS</div>
+              <div style="color:var(--danger);font-size:11px;font-family:var(--mono)">Contraindicaciones relativas:</div>
+              <div class="small" style="margin-bottom:2px">• IAo moderada-severa (refluye al VI)</div>
+              <div class="small" style="margin-bottom:2px">• Estenosis coronaria grave</div>
+              <div class="small">• Bypass mamaria permeable</div>
+            </div>
+            <div style="background:rgba(123,97,255,.04);border:1px solid rgba(123,97,255,.2);border-radius:4px;padding:12px">
+              <div style="color:var(--accent3);font-family:var(--mono);font-size:10px;margin-bottom:8px">RETRÓGRADA (seno coronario)</div>
+              <div class="small" style="margin-bottom:3px">Catéter a través de AD → seno coronario</div>
+              <div class="small" style="margin-bottom:3px">Flujo 200 mL/min → presión ~40 mmHg</div>
+              <div class="small" style="margin-bottom:3px"><strong>Confirmar posición con TEE</strong> (plano 4 cámaras bajo o bicava)</div>
+              <div class="small" style="margin-bottom:4px">Riesgo perforación del seno (morbilidad significativa)</div>
+              <div style="color:var(--warn);font-size:11px;font-family:var(--mono)">Señales de alarma:</div>
+              <div class="small" style="margin-bottom:2px">• Presión = PVC (no sube con flujo): no está en seno</div>
+              <div class="small" style="margin-bottom:2px">• Presión >100 mmHg: cánula contra pared</div>
+              <div class="small">• ¡VD derecho puede quedar isquémico! (venas cardíacas ant. drenan directamente en AD)</div>
+            </div>
+          </div>
+          <div class="alert w" style="margin-top:10px"><span class="alert-icon">⚠️</span><div><strong>VCSIZ (vena cava superior izquierda persistente):</strong> aparece como seno coronario dilatado en TEE. Contraindica cardioplejía retrógrada. Buscar activamente en TEE si hay hallazgos anatómicos inusuales.</div></div>
+        </div>
+
+        <div id="cp-monitor" class="hidden">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">ROL DEL ANESTESIÓLOGO EN CARDIOPLEJÍA</div>
+          <ul class="steps">
+            <li class="step"><div class="sn b">1</div><div class="st"><strong>Confirmar posición catéter seno coronario</strong> con TEE (plano bicava + cuatro cámaras a nivel bajo). Visualizar balón inflado en apertura del seno.</div></li>
+            <li class="step"><div class="sn b">2</div><div class="st"><strong>Monitorear presión del catéter retrógrado</strong> en transductor CVP. <span class="dose">200 mL/min → ~40 mmHg</span>. Si presión no sube: no está en seno. Si &gt;100 mmHg: obstruido.</div></li>
+            <li class="step"><div class="sn w">3</div><div class="st"><strong>Vigilar distensión VI:</strong> cardioplejía anterógrada con IAo → reflujo masivo al VI → dilatación aguda. Alertar al cirujano inmediatamente. Vent de VI indicado.</div></li>
+            <li class="step"><div class="sn b">4</div><div class="st"><strong>Verificar electrolitos post-cardioplejía</strong> antes de salida: K⁺ &gt;5 es frecuente (cardioplejía hiperpotasémica). Perfusionista puede dializarlo. Corregir a 4–5 mEq/L.</div></li>
+            <li class="step"><div class="sn b">5</div><div class="st"><strong>TEE en MICS:</strong> el anestesiólogo inserta el catéter de seno coronario por VYID bajo guía ecográfica completa. Confirmar en tiempo real.</div></li>
+          </ul>
+          <div class="alert d" style="margin-top:8px"><span class="alert-icon">🚨</span><div><strong>Cardioplejía retrógrada continua caliente (CWCP):</strong> si la presión cae a PVC → período de isquemia cálida → disfunción ventricular severa y muerte. Monitorizar presión del catéter de FORMA CONTINUA durante administración.</div></div>
+        </div>
+      </div>
+
+      <!-- ══ MICS / OFF-PUMP ══ -->
+      <div id="cv-mics" class="hidden">
+        <div class="alert p" style="margin-bottom:10px"><span class="alert-icon">🔬</span><div><strong>MICS = Minimally Invasive Cardiac Surgery:</strong> sin esternotomía completa. Requiere: TOE mandatorio · tubo doble luz (o bloqueador bronquial) para OLV · parches desfibrilación externos · canulación periférica femoral + VYID. <em style="color:var(--text3)">Aston et al. JCDD 2023;10:462.</em></div></div>
+
+        <div class="tabs"><div class="tab active" onclick="tab(this,'mics-prep')">Preparación MICS</div><div class="tab" onclick="tab(this,'mics-offpump')">Off-pump CABG</div><div class="tab" onclick="tab(this,'mics-harlequin')">⚠️ Complicaciones</div></div>
+
+        <div id="mics-prep">
+          <div class="g2" style="gap:10px;margin-bottom:12px">
+            <div>
+              <div style="color:var(--accent);font-family:var(--mono);font-size:10px;margin-bottom:6px">DIFERENCIAS VS CIRUGÍA CONVENCIONAL</div>
+              <div class="small" style="margin-bottom:3px">• Tubo doble luz (izq/der según abordaje) o bloqueador bronquial</div>
+              <div class="small" style="margin-bottom:3px">• Parches desfibrilación externos OBLIGATORIOS (campo limitado)</div>
+              <div class="small" style="margin-bottom:3px">• Canulación femoral: arterial + venosa. VYID para drenaje SVC</div>
+              <div class="small" style="margin-bottom:3px">• A-línea BILATERAL si se usa endoaortic balloon (Chitwood vs endoballoon)</div>
+              <div class="small" style="margin-bottom:3px">• NIRS cerebral bilateral (detecta síndrome Harlequin)</div>
+              <div class="small">• Ventilación unipulmonar: VT 4–5 mL/kg PI · PEEP 5 · tolerar hipoxia permisiva</div>
+            </div>
+            <div>
+              <div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:6px">CONTRAINDICACIONES MICS</div>
+              <div class="small" style="margin-bottom:3px">🔴 IAo severa (dificulta cardioplejía anterógrada)</div>
+              <div class="small" style="margin-bottom:3px">🔴 Calcificación severa raíz aórtica / aorta ascendente</div>
+              <div class="small" style="margin-bottom:3px">🔴 Tortuosidad severa o ateroma en ilíacas/femorales</div>
+              <div class="small" style="margin-bottom:3px">🔴 Contraindicación absoluta a TEE</div>
+              <div class="small" style="margin-bottom:3px">🟡 Obesidad mórbida (dificultad posición + OLV)</div>
+              <div class="small">🟡 Adherencias pleurales (cirugía torácica previa)</div>
+            </div>
+          </div>
+
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">ROL TEE EN MICS — MOMENTOS CRÍTICOS</div>
+          <table class="tbl"><thead><tr><th>Momento</th><th>Qué hacer con TEE</th><th>Plano / Estructura</th></tr></thead><tbody>
+            <tr><td>Canulación venosa femoral</td><td class="dnote">Visualizar guía en AD antes de dilatar</td><td class="dd">Plano bicava 90°</td></tr>
+            <tr><td>Canulación SVC por VYID</td><td class="dnote">Confirmar cánula en unión cavo-auricular</td><td class="dd">Plano bicava · medioesofágico</td></tr>
+            <tr><td>Endoaortic balloon</td><td class="dnote">Confirmar posición en aorta ascendente. Vigilar migración. Ver flujo cardioplejía.</td><td class="dd">Plano eje largo TSVI</td></tr>
+            <tr><td>Cardioplejía retrógrada</td><td class="dnote">Inserción percutánea desde VYID. Confirmar balón en seno coronario</td><td class="dd">4 cámaras bajo · bicava</td></tr>
+            <tr><td>Inicio CEC</td><td class="dnote">Vigilar síndrome Harlequin (NIRS + TEE)</td><td class="dd">Aorta descendente + septum</td></tr>
+            <tr><td>Salida de CEC</td><td class="dnote">Función VD (no visible para cirujano) · de-airing</td><td class="dd">4 cámaras · PSAX VD</td></tr>
+            <tr><td>Post-reparación válvula</td><td class="dnote">Evaluar resultado + SAM + insuf. residual</td><td class="dd">Comisural 60° · 4 cámaras</td></tr>
+          </tbody></table>
+        </div>
+
+        <div id="mics-offpump" class="hidden">
+          <div class="alert i"><span class="alert-icon">ℹ️</span><div><strong>Off-pump CABG:</strong> corazón latiendo, estabilizador (Octopus/Starfish por succión). Sin CEC → coagulación intacta → mayor riesgo de trombosis del injerto perioperatorio. Mayor desafío técnico anestésico por inestabilidad hemodinámica durante retracción cardíaca.</div></div>
+          <ul class="steps">
+            <li class="step"><div class="sn w">1</div><div class="st"><strong>Anestesia:</strong> opioides para ↓ FC (fentanilo/sufentanilo/remifentanilo). Evitar betaagonistas (taquicardia y pro-arrítmicos). ↓ FC facilita anastomosis.</div></li>
+            <li class="step"><div class="sn w">2</div><div class="st"><strong>Heparinización completa igualmente:</strong> <span class="dose">300 UI/kg</span> — si hay problema se puede canular y entrar en CEC. ACT &gt;300 como mínimo (algunos centros 250).</div></li>
+            <li class="step"><div class="sn w">3</div><div class="st"><strong>Carga de volumen + vasoconstrictores</strong> al retraer el corazón (Starfish). Trendelelenburg para anastomosis de pared inferior. Evitar betaagonistas.</div></li>
+            <li class="step"><div class="sn w">4</div><div class="st"><strong>Profilaxis arritmias:</strong> <span class="drug">Mg 2g IV + Lidocaína 100 mg bolo → infusión 2 mg/min</span>. Amiodarona 150 mg IV si arritmias. Marcapasos auricular si FC muy baja.</div></li>
+            <li class="step"><div class="sn w">5</div><div class="st"><strong>Ventilación:</strong> ↓ VT + ↑ FR para reducir movimiento pulmonar. No usar PEEP alto si dificulta campo quirúrgico.</div></li>
+            <li class="step"><div class="sn w">6</div><div class="st"><strong>Protamina cuidadosa:</strong> sin circuito de CEC → no hay red de seguridad. Dosis puede ser menor. ACT cada 1/3 de la dosis. Revertir lentamente.</div></li>
+            <li class="step"><div class="sn d">!</div><div class="st"><strong>Anticoagulación post-op:</strong> sin daño del sistema de coagulación por CEC → coagulación funcional → riesgo real de trombosis del injerto y TEP. Considerar anticoagulación precoz.</div></li>
+          </ul>
+          <div class="alert w" style="margin-top:8px"><span class="alert-icon">🔄</span><div><strong>Plan para FV intraoperatoria:</strong> tener bomba lista para primar (no cebada pero armada). Si el paciente fibrilat → esternotomía de emergencia + entrar en CEC. La mini-toracotomía es un obstáculo para la resucitación.</div></div>
+        </div>
+
+        <div id="mics-harlequin" class="hidden">
+          <div class="alert d"><span class="alert-icon">🚨</span><strong>SÍNDROME DE HARLEQUIN:</strong> Sangre desoxigenada del corazón latiente perfunde hemicuerpo superior (cabeza) mientras la CEC retrógrada femoral perfunde hemicuerpo inferior con sangre oxigenada. Hipoxia cerebral grave con SpO₂ normal en dedo.</div>
+          <hr class="divider">
+          <div class="g2" style="gap:10px">
+            <div>
+              <div style="color:var(--danger);font-family:var(--mono);font-size:10px;margin-bottom:6px">DETECCIÓN</div>
+              <div class="small" style="margin-bottom:3px">• NIRS bilateral: caída unilateral o bilateral</div>
+              <div class="small" style="margin-bottom:3px">• SpO₂ mano derecha vs mano izquierda (diferencia)</div>
+              <div class="small" style="margin-bottom:3px">• A-línea radial bilateral si se usa endoballoon</div>
+              <div class="small">• ECO doppler de flujo: sangre desoxigenada hacia inominada</div>
+            </div>
+            <div>
+              <div style="color:var(--accent2);font-family:var(--mono);font-size:10px;margin-bottom:6px">TRATAMIENTO</div>
+              <div class="small" style="margin-bottom:3px">• Mantener OLV con FiO₂ alta hasta paro cardíaco completo</div>
+              <div class="small" style="margin-bottom:3px">• ↑ FiO₂ al pulmón ventilado</div>
+              <div class="small" style="margin-bottom:3px">• Asegurar paro cardíaco total (cardioplejía)</div>
+              <div class="small">• Si persiste: reconsiderar técnica de canulación</div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">OTRAS COMPLICACIONES ESPECÍFICAS MICS</div>
+          <table class="tbl"><thead><tr><th>Complicación</th><th>Incidencia</th><th>Conducta</th></tr></thead><tbody>
+            <tr><td>ACV (vs estándar)</td><td class="dd">2.1 vs 1.2%</td><td class="dnote">Perfusión retrógrada + ateroma ilíaco. CT urgente. NIRS para detección precoz.</td></tr>
+            <tr><td>Disección aórtica</td><td class="dd">2 vs 0%</td><td class="dnote">Endoballoon &gt; Chitwood. TEE: evaluar aorta tras clampaje. Elevación PA = alarma.</td></tr>
+            <tr><td>Lesión vascular femoral</td><td class="dnote">Hasta 6%</td><td class="dnote">Hematoma retroperitoneal, síndrome compartimental MMII. Vigilar post-op.</td></tr>
+            <tr><td>Edema pulmonar post-reexpansión</td><td class="dd">2.1%</td><td class="dnote">Post-OLV. FR: corticoides preop + clampaje >156 min. O₂ + diurético + CPAP.</td></tr>
+            <tr><td>Conversión a esternotomía</td><td class="dd">~1%</td><td class="dnote">Sangrado incontrolable, disección aórtica, exposición insuficiente.</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- ══ HEMODINÁMICA ══ -->
+      <div id="cv-hemo" class="hidden">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">OBJETIVOS HEMODINÁMICOS POR FASE</div>
+        <table class="tbl"><thead><tr><th>Fase</th><th>PAM objetivo</th><th>FC objetivo</th><th>Notas clave</th></tr></thead><tbody>
+          <tr><td><strong>Pre-CEC</strong></td><td class="dd">±20% del basal</td><td class="dd">40–80 lpm</td><td class="dnote">Neo infusión desde antes de inducción (evitar scramble). Controlar isquemia.</td></tr>
+          <tr><td><strong>CEC fría</strong></td><td class="dd">40–60 mmHg</td><td class="dd">Corazón parado</td><td class="dnote">EVC/IRC: 60–80 en todo el bypass</td></tr>
+          <tr><td><strong>CEC cálida</strong></td><td class="dd">60–80 mmHg</td><td class="dd">Corazón latiendo</td><td class="dnote">Antes de salida: corregir SVR primero</td></tr>
+          <tr><td><strong>Post-CEC</strong></td><td class="dd">TAS 100–120</td><td class="dd">60–80 lpm</td><td class="dnote">&gt;120 = hipertensivo = más sangrado. IC &gt;2.0</td></tr>
+          <tr><td><strong>Traslado UCI</strong></td><td class="dd">Estable en todo momento</td><td class="dd">—</td><td class="dnote">No cambiar A-línea si inestable. No remover VVP hasta que UCI asume. No dejar hasta estabilizar.</td></tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">ISQUEMIA INTRAOPERATORIA — VIGILANCIA ECG</div>
+        <div class="alert w"><span class="alert-icon">📈</span><div><strong>40% de los pacientes de CABG tienen episodios de isquemia intraoperatoria.</strong> ECG cada 60 s mínimo. Preguntarle: "¿Tiene dolor?" Registrar ECG 5 derivaciones basal antes de inducción. La hipoperfusión detiene la contractilidad en 5–10 s; el ECG cambia en 60–90 s. TEE (PSAX medio-papilar) puede detectarlo antes.</div></div>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">INOTROPÍA POST-BYPASS — GUÍA RÁPIDA</div>
+        <table class="tbl"><thead><tr><th>Fármaco</th><th>Dosis</th><th>Efecto principal</th><th>Cuándo usarlo</th></tr></thead><tbody>
+          <tr><td class="dn">Dobutamina</td><td class="dd">3–10 mcg/kg/min</td><td class="dnote">↑ GC, ↑ FC leve, ↓ RVS leve</td><td class="dnote">↓ FE + SVR normal o alta. No en TSVI obstruida (HCM).</td></tr>
+          <tr><td class="dn">Milrinona</td><td class="dd">0.25–0.75 mcg/kg/min</td><td class="dnote">↑ GC, ↓ RVP, inodilatador</td><td class="dnote">HAP + disfunción VD. ⚠️ No sin vasoconstrictor paralelo (hipotensión profunda). Hablar con cirujano antes.</td></tr>
+          <tr><td class="dn">Noradrenalina</td><td class="dd">0.05–0.5 mcg/kg/min</td><td class="dnote">↑ SVR, mantiene PAM</td><td class="dnote">SVR baja post-bypass (frecuente). Primera línea vasopresor.</td></tr>
+          <tr><td class="dn">Adrenalina</td><td class="dd">0.01–0.3 mcg/kg/min</td><td class="dnote">↑↑ GC + SVR</td><td class="dnote">Disfunción sistólica severa + hipotensión. Segunda línea.</td></tr>
+          <tr><td class="dn">Vasopresina</td><td class="dd">0.03–0.04 UI/min (fija)</td><td class="dnote">↑ SVR sin catecolaminas</td><td class="dnote">Shock vasodilatador refractario. Shock post-CEC. No titular >0.04 UI/min.</td></tr>
+          <tr><td class="dn">Cloruro Ca²⁺</td><td class="dd">0.5–1 g IV bolo</td><td class="dnote">Inotropía transitoria</td><td class="dnote">Salida rutinaria de CEC. ≤2g total (pancreatitis a dosis altas).</td></tr>
+        </tbody></table>
+      </div>
+
+      <!-- ══ VALVULOPATÍAS ══ -->
+      <div id="cv-valvulas" class="hidden">
+        <div class="alert i" style="margin-bottom:10px"><span class="alert-icon">ℹ️</span><div>Cada valvulopatía tiene un perfil hemodinámico específico que debe mantenerse durante todo el período pre-bypass. Alteraciones en FC, ritmo o poscarga pueden precipitar descompensación aguda.</div></div>
+        <table class="tbl"><thead><tr><th>Lesión</th><th>Precarga</th><th>Poscarga (SVR)</th><th>FC objetivo</th><th>Ritmo</th><th>Consideración clave</th></tr></thead><tbody>
+          <tr>
+            <td><strong class="dn">Estenosis Aórtica (EA)</strong></td>
+            <td><span class="badge bok">↑ Mantener</span></td>
+            <td><span class="badge bw">↑ Mantener</span></td>
+            <td class="dd">50–80 lpm</td>
+            <td><span class="badge bok">NSR</span></td>
+            <td class="dnote">Evitar hipotensión (↓ perfusión subendocárdica). FC lenta = más tiempo de llenado VI. Taquicardia es mal tolerada.</td>
+          </tr>
+          <tr>
+            <td><strong class="dn">Insuficiencia Aórtica (IAo)</strong></td>
+            <td><span class="badge bok">↑ Mantener</span></td>
+            <td><span class="badge bd">↓ Reducir</span></td>
+            <td class="dd">70–90 lpm</td>
+            <td><span class="badge bok">NSR</span></td>
+            <td class="dnote">FC más alta → menos tiempo de regurgitación diastólica → mejor perfusión. Vasodilatar (↓ poscarga) para reducir volumen regurgitante.</td>
+          </tr>
+          <tr>
+            <td><strong class="dn">Estenosis Mitral (EM)</strong></td>
+            <td><span class="badge bok">↑ Mantener</span></td>
+            <td><span class="badge bw">↑ Mantener</span></td>
+            <td class="dd">50–70 lpm</td>
+            <td><span class="badge bok">NSR o FA controlada</span></td>
+            <td class="dnote">FC lenta = más tiempo de llenado (obstruido). Evitar taquicardia. FA bien controlada puede tolerarse. HAP frecuente.</td>
+          </tr>
+          <tr>
+            <td><strong class="dn">Insuficiencia Mitral (IM)</strong></td>
+            <td><span class="badge bok">↑ Mantener</span></td>
+            <td><span class="badge bd">↓ Reducir</span></td>
+            <td class="dd">80–100 lpm</td>
+            <td><span class="badge bok">NSR</span></td>
+            <td class="dnote">FC moderada-alta → ↓ llenado ventricular → ↓ regurgitación. Vasodilatación facilita flujo anterógrado. La FEVI puede subestimarse por bajo poscarga.</td>
+          </tr>
+        </tbody></table>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:8px">BALÓN DE CONTRAPULSACIÓN INTRAAÓRTICO (BCPIA)</div>
+        <ul class="steps">
+          <li class="step"><div class="sn b">1</div><div class="st">Indicación: insuficiencia VI severa post-CEC, angina inestable refractaria, fracaso weaning de bypass</div></li>
+          <li class="step"><div class="sn b">2</div><div class="st">Requiere señal ECG + señal de PA invasiva. En monitor Datex: canal 3 para señal slave → conectar transductor arterial nuevo al BCPIA + cable slave al canal 3.</div></li>
+          <li class="step"><div class="sn b">3</div><div class="st">Inflado en diástole → ↑ perfusión coronaria. Desinflado en sístole → ↓ poscarga (↑ gasto cardíaco).</div></li>
+          <li class="step"><div class="sn b">4</div><div class="st">No retirar cánula aórtica hasta decidir si se necesita BCPIA o retorno a CEC</div></li>
+        </ul>
+
+        <hr class="divider">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px">EXTUBACIÓN EN UCI — CRITERIOS FAST-TRACK CARDÍACO</div>
+        <div class="g2">
+          <div>
+            <div style="color:var(--accent2);font-family:var(--mono);font-size:10px;margin-bottom:5px">CRITERIOS PARA EXTUBAR (4–8h post-op)</div>
+            <div class="small" style="margin-bottom:2px">✓ Sin evidencia de isquemia / IAM / falla cardíaca</div>
+            <div class="small" style="margin-bottom:2px">✓ Estabilidad HD con soporte inotrópico limitado</div>
+            <div class="small" style="margin-bottom:2px">✓ Drenaje &lt;50 mL/h × 2h sin coagulopatía</div>
+            <div class="small" style="margin-bottom:2px">✓ GAS: FiO₂ 0.4 · SIMV 8 · PEEP 5 · TV 10 mL/kg</div>
+            <div class="small" style="margin-bottom:2px">✓ Despierto, cooperador, ventilación espontánea</div>
+            <div class="small">✓ Normotérmico</div>
+          </div>
+          <div>
+            <div style="color:var(--warn);font-family:var(--mono);font-size:10px;margin-bottom:5px">CAUSAS FRECUENTES DE DEMORA</div>
+            <div class="small" style="margin-bottom:2px">🔴 Mismatch V/Q por complejos heparina-protamina en pulmón</div>
+            <div class="small" style="margin-bottom:2px">🟡 Sedación excesiva intraoperatoria</div>
+            <div class="small" style="margin-bottom:2px">🟡 Inestabilidad hemodinámica</div>
+            <div class="small" style="margin-bottom:2px">🟡 Coagulopatía activa</div>
+            <div class="small">🟡 Tamponada cardíaca (considerar siempre en hipotensión)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
      MÓDULO: ÁCIDO-BASE DUAL
      Análisis Henderson-Hasselbalch + Stewart simultáneo
 ═══════════════════════════════════════════════════════════ -->
@@ -2152,6 +3097,28 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 </div>
 
 <script>
+// ===== MENU HAMBURGUESA =====
+function toggleMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('menuOverlay');
+  const btn = document.getElementById('hambBtn');
+  const isOpen = sidebar.classList.contains('open');
+  if(isOpen) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.classList.remove('open');
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+function closeMenu() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+  document.getElementById('hambBtn').classList.remove('open');
+}
+
 // ===== NAV =====
 let activeSection = 'home';
 function show(id) {
@@ -2162,6 +3129,7 @@ function show(id) {
   const btn = document.getElementById('btn-' + id);
   if(btn) btn.classList.add('active');
   activeSection = id;
+  closeMenu(); // auto-close sidebar on mobile after selection
 }
 
 function tab(el, targetId) {
@@ -2195,9 +3163,11 @@ const SEARCH_INDEX = [
   {k:['dosis','propofol','ketamina','etomidato','fentanilo','morfina','midazolam','sugammadex','neostigmina','atracurio','vecuronio','rocuronio','remifentanilo','tramadol','ondansetron','dexametasona'],s:'calc-dosis',cat:'Calculadora',label:'Dosis Fármacos por Peso'},
   {k:['vasopresor','noradrenalina','adrenalina','fenilefrina','dopamina','dobutamina','vasopresina','nitroglicerina','esmolol','labetalol','ml/h','infusión'],s:'calc-vasopresores',cat:'Calculadora',label:'Vasopresores & Vasoactivos'},
   {k:['transfusión','fluido','hemoderivado','glóbulos','plaquetas','pfc','cristaloide','coloide','sangre','hb','hemoglobina'],s:'calc-fluidos',cat:'Calculadora',label:'Fluidos & Transfusión'},
-  {k:['bicarbonato','sodio','potasio','calcio','medio interno','acidosis','alcalosis','hiponatremia','hiperpotasemia','hipocalcemia'],s:'calc-medio',cat:'Calculadora',label:'Medio Interno'},
+  {k:['bicarbonato','sodio','potasio','calcio','medio interno','acidosis','alcalosis','hiponatremia','hiperpotasemia','hipocalcemia','diuresis','oliguria','glucosa','hipoglucemia','dextrosa'],s:'calc-medio',cat:'Calculadora',label:'Medio Interno'},
   {k:['tiva','tci','propofol tci','marsh','schnider','ce','concentración efecto','remifentanilo','minto','sufentanilo'],s:'calc-tiva',cat:'Calculadora',label:'TIVA / TCI Avanzado'},
   {k:['ventilación','vt','volumen tidal','peep','pafi','pao2','fio2','ards','sdra','parámetros vent'],s:'calc-vent',cat:'Calculadora',label:'Ventilación & Oximetría'},
+  {k:['ppico','pmeseta','pplat','driving pressure','compliance','resistencia pulmonar','poder mecánico','capnografía','capno','etco2','parámetros ventilatorios'],s:'param-vent',cat:'Referencia',label:'Parámetros Ventilatorios & Capnografía'},
+  {k:['bypass','cec','cirugía cardíaca','cardioplejía','heparina bypass','protamina','act','weaning bypass','off-pump','mics','cabg','valvuloplastia','sternotomía','svr','wrmvp','had2sue','harlequin'],s:'cv-checklist',cat:'Cardiovascular',label:'Cirugía Cardíaca — CEC · Cardioplejía · MICS'},
 
   // MONITOREO
   {k:['pocus','echo','ecografía','fate','rush','vci','vena cava','ultrasonido','transductor'],s:'pocus',cat:'POCUS',label:'POCUS / Ecocardiografía'},
@@ -3134,6 +4104,196 @@ function calcAcidoBase() {
   if(hco3 > 28) man += `<div style="color:var(--warn);font-size:12px;margin-bottom:4px">• Alcalosis metabólica: evaluar hipocloremia (ClNa IV), hipopotasemia (reponer K⁺), uso de diuréticos. Acetazolamida si refractaria.</div>`;
   if(!man) man = `<div style="color:var(--accent2);font-size:12px">Trastorno compensado o leve. Observación y monitoreo. Repetir gasometría en 1–2h si evolución clínica cambia.</div>`;
   document.getElementById('ab-manejo').innerHTML = man;
+}
+
+// ===== DIURESIS =====
+function calcDiuresis() {
+  const peso = parseFloat(document.getElementById('diur-peso').value);
+  const vol = parseFloat(document.getElementById('diur-vol').value);
+  const tiempo = parseFloat(document.getElementById('diur-tiempo').value);
+  if(!peso || !vol || !tiempo) return;
+  const ritmo = vol / tiempo / peso; // mL/kg/h
+  const ritmoH = vol / tiempo; // mL/h
+  let estadio = '', color = 'var(--accent2)', estadioClass = 'ok';
+  let accion = '';
+  if(ritmo >= 0.5) {
+    estadio = 'NORMAL'; color = 'var(--accent2)'; estadioClass = 'ok';
+    accion = 'Diuresis adecuada. Continuar monitoreo horario.';
+  } else if(ritmo >= 0.3) {
+    estadio = 'OLIGURIA leve (Estadio AKI 1)'; color = 'var(--warn)'; estadioClass = 'w';
+    accion = 'Evaluar volemia (VCI, POCUS). Optimizar precarga. Suspender nefrotóxicos. Monitoreo c/30 min.';
+  } else if(ritmo > 0) {
+    estadio = 'OLIGURIA severa (Estadio AKI 2–3)'; color = 'var(--danger)'; estadioClass = 'd';
+    accion = 'ACCIÓN URGENTE: evaluar causa (hipovolemia, obstrucción, SHR). Considerar furosemida solo si euvolemia confirmada. Avisar nefrología.';
+  } else {
+    estadio = 'ANURIA (Estadio AKI 3)'; color = 'var(--danger)'; estadioClass = 'd';
+    accion = 'Anuria: descartar obstrucción Foley. TRR si refractaria. Nefrología urgente.';
+  }
+  const target_60 = peso * 0.5 * 60;
+  const target_h = peso * 0.5;
+  const res = document.getElementById('diur-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">Ritmo diurético</span><span class="rv ${estadioClass}">${ritmo.toFixed(2)} mL/kg/h</span></div>
+    <div class="ri"><span class="rl">Volumen/hora (absoluto)</span><span class="rv">${ritmoH.toFixed(0)} mL/h</span></div>
+    <div class="ri"><span class="rl">Clasificación KDIGO</span><span class="rv ${estadioClass}">${estadio}</span></div>
+    <div class="ri"><span class="rl">Objetivo mínimo (0.5 mL/kg/h)</span><span class="rl">${target_h.toFixed(0)} mL/h · ${target_60.toFixed(0)} mL en 2h</span></div>
+    <div style="margin-top:8px;font-size:11px;color:${color};border-top:1px solid var(--border);padding-top:6px">${accion}</div>`;
+}
+
+// ===== GLUCOSA HIPOGLUCEMIA =====
+function calcGlucosa() {
+  const peso = parseFloat(document.getElementById('glu-peso').value);
+  const actual = parseFloat(document.getElementById('glu-actual').value);
+  const target = parseFloat(document.getElementById('glu-target').value);
+  const conc = parseFloat(document.getElementById('glu-sol').value);
+  if(!peso || !actual || !target) return;
+  // g de glucosa necesarios = (target-actual)/18 * volDistrib
+  // Volumen distribución glucosa ~0.25 L/kg (extracelular + algo intracel)
+  // Fórmula simplificada: dextrosa (g) = (target_mg/dL - actual_mg/dL) * peso * 0.4 / 100
+  const dextrosa_g = ((target - actual) * peso * 0.4) / 100;
+  const vol_mL = (dextrosa_g / (conc / 100)) / 10; // mL de la solución
+  let severidad = '', accion = '';
+  if(actual < 40) { severidad = '🔴 CRÍTICA'; accion = 'Bolo IV urgente. Si no hay acceso: Glucagón 1 mg IM.'; }
+  else if(actual < 54) { severidad = '🟠 GRAVE'; accion = 'Bolo IV inmediato. Repetir glucemia en 15 min.'; }
+  else if(actual < 70) { severidad = '🟡 MODERADA'; accion = 'D10% 100-150 mL IV. Repetir glucemia 15-30 min.'; }
+  else { severidad = '🟢 LEVE'; accion = 'Glucosa VO si consciente. Monitoreo cada 30 min.'; }
+  const boloD50 = 50 / (50 / 100); // mL de D50% para dar 25g = bolo estándar
+  const res = document.getElementById('glu-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">Glucemia actual</span><span class="rv d">${actual} mg/dL — ${severidad}</span></div>
+    <div class="ri"><span class="rl">Glucemia objetivo</span><span class="rl">${target} mg/dL</span></div>
+    <div class="ri"><span class="rl">Dextrosa necesaria (estimado)</span><span class="rv">${dextrosa_g.toFixed(1)} g</span></div>
+    <div class="ri"><span class="rl">Volumen de D${conc}% requerido</span><span class="rv w">${vol_mL.toFixed(0)} mL IV</span></div>
+    <div class="ri"><span class="rl">Bolo estándar D50% (25g)</span><span class="rl">50 mL IV lento</span></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--warn);border-top:1px solid var(--border);padding-top:6px">⚠️ ${accion}<br><span style="color:var(--text3)">Repetir glucemia 15–30 min post-tratamiento. Meta: 80–180 mg/dL intraoperatorio.</span></div>`;
+}
+
+// ===== PLAN DEXTROSA =====
+function calcDextrose() {
+  const peso = parseFloat(document.getElementById('dext-peso').value);
+  const glu = parseFloat(document.getElementById('dext-glu').value);
+  const osm = parseFloat(document.getElementById('dext-osm').value) || 450;
+  const ctx = document.getElementById('dext-ctx').value;
+  if(!peso || !glu) return;
+
+  // Tasa basal de glucosa: 2-4 mg/kg/min en adulto sano
+  let tasaBase = 2; // mg/kg/min
+  let solucion = 'D5%'; let concGdL = 5;
+  let ajuste = '';
+
+  if(ctx === 'dm1') { tasaBase = 3; ajuste = 'DBT tipo 1: infusión con insulina paralela. Glucemia c/1h.'; }
+  else if(ctx === 'dm2') { tasaBase = 2; ajuste = 'DBT tipo 2: monitoreo glucémico horario. Titular según respuesta.'; }
+  else if(ctx === 'ped') { tasaBase = 4; solucion = 'D10%'; concGdL = 10; ajuste = 'Pediátrico: GIR 4-6 mg/kg/min. D10% de elección.'; }
+  else if(ctx === 'hep') { tasaBase = 3; solucion = 'D10%'; concGdL = 10; ajuste = 'Insuf. hepática: menor gluconeogénesis. Monitoreo más frecuente.'; }
+
+  // Ajustar por glucemia actual
+  if(glu > 180) { tasaBase = Math.max(0.5, tasaBase - 1); ajuste += ' Glucemia elevada: reducir aporte.'; }
+  else if(glu < 80) { tasaBase = Math.min(6, tasaBase + 1.5); ajuste += ' Glucemia baja: aumentar aporte. Evaluar bolo.'; }
+
+  // Ajustar por osmolaridad urinaria (refleja estado de hidratación)
+  let osmNote = '';
+  if(osm > 600) { osmNote = 'Osm. urinaria alta → probable deshidratación. Considerar ↑ flujo o agregar SF.'; }
+  else if(osm < 300) { osmNote = 'Osm. urinaria baja → sobrehidratación o DI. Reducir aportes hídricos.'; }
+  else { osmNote = 'Osmolaridad urinaria en rango normal (300-600 mOsm/kg).'; }
+
+  // Cálculo infusión
+  const tasaMg_min = tasaBase; // mg/kg/min
+  const tasaG_h = (tasaMg_min * peso * 60) / 1000; // g/h
+  const volMl_h = (tasaG_h / concGdL) * 100; // mL/h
+
+  const res = document.getElementById('dext-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">Tasa de infusión glucosa</span><span class="rv">${tasaBase} mg/kg/min</span></div>
+    <div class="ri"><span class="rl">Glucosa aportada</span><span class="rv">${tasaG_h.toFixed(1)} g/h</span></div>
+    <div class="ri"><span class="rl">Solución recomendada</span><span class="rv w">${solucion}</span></div>
+    <div class="ri"><span class="rl">Velocidad de infusión</span><span class="rv ok">${volMl_h.toFixed(0)} mL/h de ${solucion}</span></div>
+    <div class="ri"><span class="rl">Osmolaridad urinaria</span><span class="rl">${osm} mOsm/kg</span></div>
+    <div style="margin-top:6px;font-size:11px;color:var(--accent);border-top:1px solid var(--border);padding-top:6px">${osmNote}</div>
+    ${ajuste ? `<div style="margin-top:4px;font-size:11px;color:var(--warn)">${ajuste}</div>` : ''}
+    <div style="margin-top:4px;font-size:10px;color:var(--text3)">Monitoreo glucémico: c/1h intraop si DM · c/30 min si insulina IV · Objetivo 80–180 mg/dL</div>`;
+}
+
+// ===== SVR CALCULATOR =====
+function calcSVR() {
+  const pam = parseFloat(document.getElementById('svr-pam').value);
+  const pvc = parseFloat(document.getElementById('svr-pvc').value);
+  const gc = parseFloat(document.getElementById('svr-gc').value);
+  if(!pam || pvc === undefined || !gc) return;
+  const svr = ((pam - pvc) / gc) * 80;
+  let svrNote = '', svrClass = 'ok';
+  if(svr < 600) { svrNote = '⚠️ SVR muy baja → vasoconstrictor agresivo antes de salir. Neo o Noradrenalina.'; svrClass = 'd'; }
+  else if(svr < 800) { svrNote = 'SVR baja-límite → vasoconstrictor antes de salir de bypass.'; svrClass = 'w'; }
+  else if(svr <= 1200) { svrNote = '✓ SVR en rango objetivo. Condiciones favorables para weaning.'; }
+  else { svrNote = 'SVR alta → vasodilatación (nitroglicerina/nitroprusiato). Evaluar causa.'; svrClass = 'w'; }
+  // Predicted MAP with target SVR 1000
+  const map_target = (1000 / 80) * gc + pvc;
+  const res = document.getElementById('svr-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">SVR calculada</span><span class="rv ${svrClass}">${svr.toFixed(0)} dynes·s/cm⁵</span></div>
+    <div class="ri"><span class="rl">Objetivo SVR</span><span class="rl">800–1200 dynes·s/cm⁵</span></div>
+    <div class="ri"><span class="rl">PAM predicha con SVR 1000 y GC actual</span><span class="rv">${map_target.toFixed(0)} mmHg</span></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--${svrClass==='ok'?'accent2':svrClass==='w'?'warn':'danger'});border-top:1px solid var(--border);padding-top:6px">${svrNote}</div>`;
+}
+function calcDP() {
+  const pplat = parseFloat(document.getElementById('dp-pplat').value);
+  const peep = parseFloat(document.getElementById('dp-peep').value);
+  const ppico = parseFloat(document.getElementById('dp-ppico').value);
+  if(!pplat || peep === undefined || !ppico) return;
+  const dp = pplat - peep;
+  const raw_ratio = ppico > 0 ? (pplat / ppico).toFixed(2) : 'N/A';
+  let dpColor = 'var(--accent2)', dpClass = 'ok';
+  let dpNote = '';
+  if(dp <= 12) { dpColor = 'var(--accent2)'; dpNote = 'Driving pressure óptima. Bajo riesgo VILI.'; }
+  else if(dp <= 15) { dpColor = 'var(--warn)'; dpNote = 'En el límite. Evaluar reducción de VT o ajuste de PEEP.'; }
+  else { dpColor = 'var(--danger)'; dpNote = '⚠️ DP > 15 cmH₂O: riesgo VILI ↑ (Amato NEJM 2015). Reducir VT o incrementar PEEP.'; }
+  let pplatNote = '';
+  if(pplat > 30) pplatNote = '⚠️ Pplat > 30: riesgo barotrauma. Reducir VT.';
+  const res = document.getElementById('dp-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">Driving Pressure (DP)</span><span class="rv" style="color:${dpColor}">${dp.toFixed(0)} cmH₂O</span></div>
+    <div class="ri"><span class="rl">Pplat − PEEP</span><span class="rl">${pplat} − ${peep} = ${dp} cmH₂O</span></div>
+    <div class="ri"><span class="rl">Ratio Pplat/Ppico</span><span class="rv">${raw_ratio}</span></div>
+    <div class="ri"><span class="rl">Resistencia vía aérea (ΔP)</span><span class="rl">${(ppico - pplat).toFixed(0)} cmH₂O</span></div>
+    <div style="margin-top:8px;font-size:11px;color:${dpColor};border-top:1px solid var(--border);padding-top:6px">${dpNote}</div>
+    ${pplatNote ? `<div style="margin-top:4px;font-size:11px;color:var(--danger)">${pplatNote}</div>` : ''}`;
+}
+
+// ===== MECANICA PULMONAR =====
+function calcMecanica() {
+  const vt = parseFloat(document.getElementById('mec-vt').value);
+  const ppico = parseFloat(document.getElementById('mec-ppico').value);
+  const pplat = parseFloat(document.getElementById('mec-pplat').value);
+  const peep = parseFloat(document.getElementById('mec-peep').value);
+  const fr = parseFloat(document.getElementById('mec-fr').value);
+  if(!vt || !ppico || !pplat || peep === undefined || !fr) return;
+
+  const dp = pplat - peep;
+  const cst = vt / (pplat - peep); // mL/cmH2O
+  const cdyn = vt / (ppico - peep);
+  const raw_cmH2O_Ls = (ppico - pplat) / 1; // assuming flow 1 L/s (60 L/min)
+  // Poder mecánico: MP = 0.098 * FR * VT(L) * (Ppico - DP/2)
+  const vtL = vt / 1000;
+  const mp = 0.098 * fr * vtL * (ppico - dp / 2);
+  const ve = vtL * fr;
+
+  let cstNote = cst < 30 ? '⚠️ Compliance muy baja (SDRA/fibrosis)' : cst < 50 ? '↓ Compliance reducida' : cst > 100 ? '↑ Compliance alta (enfisema)' : '✓ Normal';
+  let mpNote = mp > 17 ? '⚠️ Poder mecánico elevado — riesgo VILI ↑' : mp > 12 ? 'Rango límite. Optimizar parámetros.' : '✓ Poder mecánico aceptable';
+  let dpNote = dp > 15 ? '⚠️ DP > 15 — riesgo VILI (Amato NEJM 2015)' : dp <= 12 ? '✓ DP óptima' : 'DP en límite superior aceptable';
+
+  const res = document.getElementById('mec-res');
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div class="ri"><span class="rl">Compliance estática (Cst)</span><span class="rv">${cst.toFixed(0)} mL/cmH₂O — ${cstNote}</span></div>
+    <div class="ri"><span class="rl">Compliance dinámica (Cdyn)</span><span class="rv">${cdyn.toFixed(0)} mL/cmH₂O</span></div>
+    <div class="ri"><span class="rl">Driving Pressure</span><span class="rv ${dp > 15 ? 'd' : dp > 12 ? 'w' : 'ok'}">${dp.toFixed(0)} cmH₂O — ${dpNote}</span></div>
+    <div class="ri"><span class="rl">Resistencia vía aérea (Raw)</span><span class="rv ${raw_cmH2O_Ls > 10 ? 'w' : ''}">${raw_cmH2O_Ls.toFixed(0)} cmH₂O/L/s (flujo fijo 1 L/s)</span></div>
+    <div class="ri"><span class="rl">Poder Mecánico</span><span class="rv ${mp > 17 ? 'd' : mp > 12 ? 'w' : 'ok'}">${mp.toFixed(1)} J/min — ${mpNote}</span></div>
+    <div class="ri"><span class="rl">Volumen minuto</span><span class="rv">${ve.toFixed(1)} L/min</span></div>`;
 }
 
 </script>
